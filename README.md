@@ -149,10 +149,42 @@ rvo migrate react-19 -y --no-install
 All migrations are idempotent where safe, and they are paid commands like
 `fix`, `upgrade` and `all` — `analyze` and `doctor` remain free.
 
+## Cross-framework migration (React → Vue / Angular)
+
+A three-stage pipeline — assess, then plan, then convert. Blockers (like
+React-only licensed libraries) are flagged in stage one, never discovered
+mid-build.
+
+```bash
+rvo assess ./my-app --to vue        # free: readiness report, blockers, verdict
+rvo assess ./my-app --to angular --html
+rvo plan ./my-app --to vue          # paid: architecture blueprint + effort
+rvo migrate ./my-app --to vue --out ./my-app-vue   # paid: converts components
+```
+
+The converter handles the mechanical parts (hooks → `ref`/`signal`, props,
+JSX → templates) and marks everything else with loud `TODO(human)` markers
+instead of guessing. It never touches your source files.
+
+## Microfrontends
+
+```bash
+rvo split ./my-app                   # free: do you need microfrontends?
+rvo split ./my-app --json --output split-plan.json
+# review / edit the plan, then:
+rvo split convert ./my-app --plan split-plan.json --out ./mf  # paid
+```
+
+The analyzer detects feature areas (routes + directories), measures
+cross-feature coupling, flags high-risk pairs to decouple first, and gives an
+honest `not-needed` / `worth-considering` / `recommended` verdict. The
+converter generates a Module Federation monorepo (shell + remotes) only from
+your approved plan, with a `MIGRATION-NOTES.md` listing the manual steps.
+
 ## Licensing
 
-- **Free** for personal, educational, and open-source use (`analyze` is free
-  for everyone, forever).
+- **Free** for personal, educational, and open-source use (`analyze`,
+  `assess`, `doctor`, and `split` analysis are free for everyone, forever).
 - **Commercial** use requires a one-time license:
   - **Solo** — 1 developer
   - **Team** — up to 10 developers

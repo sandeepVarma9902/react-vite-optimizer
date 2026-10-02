@@ -1,0 +1,1 @@
+{"dependencies":{"react":"^18.3.1","react-dom":"^18.3.1","react-router-dom":"^6.22.0","slate":"^0.94.0"},"devDependencies":{"vite":"^5.4.0"},"name":"migrate-demo","private":true,"version":"1.0.0"}

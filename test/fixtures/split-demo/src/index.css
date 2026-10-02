@@ -1,0 +1,30 @@
+:root {
+  --brand: #4f46e5;
+  --ink: #111827;
+  --muted: #6b7280;
+  --surface: #ffffff;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  color: var(--ink);
+  background: #f8fafc;
+}
+
+.topnav {
+  display: flex;
+  gap: 1rem;
+  padding: 0.9rem 1.5rem;
+  background: var(--ink);
+}
+
+.topnav a { color: #fff; text-decoration: none; }
+.topnav a:hover { text-decoration: underline; }
+
+.page { max-width: 1080px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; }

@@ -24,18 +24,23 @@ const {
   buildHtmlReport,
 } = require('../src/report');
 const { checkDoctor } = require('../src/doctor');
+const { assessProject, printAssess, buildAssessHtmlReport } = require('../src/assess');
 const { applyFixes } = require('../src/transforms');
 const { checkUpdates, applyUpdates } = require('../src/upgrade');
 const { requireLicense, activate, activatePrompt, showStatus, remove } = require('../src/license');
 const { listMigrations, runMigration, suggestMigrations } = require('../src/migrate');
+const { buildPlan, printPlan } = require('../src/plan');
+const { runCrossFramework } = require('../src/xmigrate');
+const { analyzeSplit, printSplit, buildSplitHtmlReport } = require('../src/split');
+const { runSplitConvert } = require('../src/split-convert');
 
 program
   .name('rvo')
   .description(
-    'Analyze, optimize, and modernize a React codebase: dependency upgrades, React.lazy code-splitting, React.memo and useMemo codemods, CRA → Vite and React 19 migrations.\n' +
-    '  rvo analyze and rvo doctor are free forever. fix / upgrade / migrate / all require a license key.'
+    'Analyze, optimize, and modernize a React codebase: dependency upgrades, React.lazy code-splitting, React.memo and useMemo codemods, CRA → Vite and React 19 migrations, cross-framework migration readiness/planning/conversion, and microfrontend analysis + conversion.\n' +
+    '  rvo analyze, rvo doctor, rvo assess and rvo split are free forever. fix / upgrade / migrate / plan / all / split convert require a license key.'
   )
-  .version('1.1.0');
+  .version(require('../package.json').version);
 
 program.addHelpText('after', `
 Examples:
@@ -47,6 +52,12 @@ Examples:
   $ rvo fix --dry-run            preview changes without writing files
   $ rvo upgrade                  bump deps to latest stable (license required)
   $ rvo migrate cra-to-vite --dry-run   preview a CRA → Vite migration (license required)
+  $ rvo assess ./my-app --to vue   migration readiness: React → Vue (free)
+  $ rvo assess ./my-app --to angular --html   write a shareable readiness report
+  $ rvo plan ./my-app --to vue     migration architecture blueprint (license required)
+  $ rvo migrate ./my-app --to vue --out ./vue-app   convert React → Vue (license required)
+  $ rvo split ./my-app             microfrontend readiness analysis (free)
+  $ rvo split convert --plan split-plan.json --out ./microfrontends   generate Module Federation monorepo (license required)
   $ rvo license <key>            activate your commercial license key
 
 Get a license key (one-time payment, 14-day money-back guarantee):
@@ -119,6 +130,45 @@ function runAnalyze(dir, opts) {
       printCiVerdict(verdict, summary);
     }
     if (!verdict.pass) process.exitCode = 1;
+  }
+}
+
+// ------------------------------------------------------------------ assess
+program
+  .command('assess [dir]')
+  .description('Analyze a React codebase for cross-framework migration readiness: blockers, library equivalence, complexity (free)')
+  .option('--from <fw>', 'source framework (currently: react)', 'react')
+  .option('--to <fw>', 'target framework: angular | vue (required)')
+  .option('--json', 'machine-readable output (stdout, or --output file)')
+  .option('--html', 'write a self-contained HTML report file')
+  .option('--output <file>', 'write --json/--html report to this file instead of defaults')
+  .action((dir, opts) => {
+    try {
+      runAssess(dir, opts);
+    } catch (e) {
+      handleError(e);
+    }
+  });
+
+function runAssess(dir, opts) {
+  const fs = require('fs');
+  const path = require('path');
+  const root = findProjectRoot(dir || process.cwd());
+  const a = assessProject(root, { from: opts.from, to: opts.to });
+  if (opts.json) {
+    const payload = JSON.stringify(a, null, 2);
+    if (opts.output) {
+      fs.writeFileSync(opts.output, payload + '\n');
+      console.log(chalk.green(`JSON report written to ${opts.output}`));
+    } else {
+      console.log(payload);
+    }
+  } else if (opts.html) {
+    const out = opts.output || path.join(process.cwd(), 'rvo-assess-report.html');
+    fs.writeFileSync(out, buildAssessHtmlReport(a));
+    console.log(chalk.green(`HTML report written to ${out}`));
+  } else {
+    printAssess(a);
   }
 }
 
@@ -302,6 +352,20 @@ function runFeedback(message) {
 // ----------------------------------------------------------------- migrate
 async function runMigrate(migration, dir, opts) {
   if (!(await requireLicense())) return;
+  // Cross-framework conversion: `rvo migrate [dir] --from react --to vue|angular`
+  if (opts.to) {
+    const target = migration || dir || process.cwd();
+    const { findProjectRoot } = require('../src/utils');
+    const root = findProjectRoot(target);
+    runCrossFramework(root, {
+      from: opts.from || 'react',
+      to: opts.to,
+      out: opts.out,
+      dryRun: !!opts.dryRun,
+      only: opts.only,
+    });
+    return;
+  }
   // Disambiguate `rvo migrate <dir>` from `rvo migrate <id> [dir]`: a bare
   // word that isn't a migration id is a typo (error); anything path-like or
   // an existing directory is the target dir.
@@ -337,11 +401,99 @@ async function runMigrate(migration, dir, opts) {
 
 program
   .command('migrate [migration] [dir]')
-  .description('Migrate a codebase — cra-to-vite, react-19 — via detect → plan → transform → verify (license required)')
+  .description('Migrate a codebase — cra-to-vite, react-19, or cross-framework via --to vue|angular (license required)')
+  .option('--from <fw>', 'cross-framework source (currently: react)', 'react')
+  .option('--to <fw>', 'cross-framework target: angular | vue (routes to the conversion engine)')
+  .option('--out <dir>', 'cross-framework: write the converted tree here (required unless --dry-run)')
+  .option('--only <paths>', 'cross-framework: comma-separated subset of source paths to convert')
   .option('--dry-run', 'print the migration plan without changing anything')
   .option('-y, --yes', 'apply without prompting')
   .option('--no-install', 'skip npm install after dependency changes')
   .action((migration, dir, opts) => runMigrate(migration, dir, opts).catch(handleError));
+
+// -------------------------------------------------------------------- plan
+async function runPlan(dir, opts) {
+  if (!(await requireLicense())) return;
+  const { findProjectRoot } = require('../src/utils');
+  const fs = require('fs');
+  const root = findProjectRoot(dir || process.cwd());
+  const plan = buildPlan(root, { from: opts.from, to: opts.to });
+  if (opts.json) {
+    const payload = JSON.stringify(plan, null, 2);
+    if (opts.output) {
+      fs.writeFileSync(opts.output, payload + '\n');
+      console.log(chalk.green(`JSON plan written to ${opts.output}`));
+    } else {
+      console.log(payload);
+    }
+  } else {
+    printPlan(plan);
+  }
+}
+
+program
+  .command('plan [dir]')
+  .description('Generate a cross-framework migration architecture blueprint from rvo assess (license required)')
+  .option('--from <fw>', 'source framework (currently: react)', 'react')
+  .option('--to <fw>', 'target framework: angular | vue (required)')
+  .option('--json', 'machine-readable output (stdout, or --output file)')
+  .option('--output <file>', 'write --json plan to this file instead of stdout')
+  .action((dir, opts) => runPlan(dir, opts).catch(handleError));
+
+// ------------------------------------------------------------------- split
+function runSplit(dir, opts) {
+  const fs = require('fs');
+  const path = require('path');
+  const root = findProjectRoot(dir || process.cwd());
+  const plan = analyzeSplit(root);
+  if (opts.json) {
+    const payload = JSON.stringify(plan, null, 2);
+    if (opts.output) {
+      fs.writeFileSync(opts.output, payload + '\n');
+      console.log(chalk.green(`JSON split plan written to ${opts.output}`));
+    } else {
+      console.log(payload);
+    }
+  } else if (opts.html) {
+    const out = opts.output || path.join(process.cwd(), 'rvo-split-report.html');
+    fs.writeFileSync(out, buildSplitHtmlReport(plan));
+    console.log(chalk.green(`HTML report written to ${out}`));
+  } else {
+    printSplit(plan);
+  }
+}
+
+async function runSplitConvertCmd(dir, opts) {
+  if (!(await requireLicense())) return;
+  const root = findProjectRoot(dir || process.cwd());
+  runSplitConvert(root, {
+    planPath: opts.plan,
+    out: opts.out,
+    dryRun: !!opts.dryRun,
+  });
+}
+
+const splitCmd = program
+  .command('split [dir]')
+  .description('Analyze a React app for microfrontend readiness: feature clusters, coupling, split plan (free)')
+  .option('--json', 'machine-readable split plan (stdout, or --output file) — this JSON feeds `split convert`')
+  .option('--html', 'write a self-contained HTML report file')
+  .option('--output <file>', 'write --json/--html report to this file instead of defaults')
+  .action((dir, opts) => {
+    try {
+      runSplit(dir, opts);
+    } catch (e) {
+      handleError(e);
+    }
+  });
+
+splitCmd
+  .command('convert [dir]')
+  .description('Generate a Module Federation monorepo from an approved split plan (license required)')
+  .requiredOption('--plan <file>', 'split plan JSON from `rvo split --json` (review and edit it first)')
+  .requiredOption('--out <dir>', 'write the monorepo here (must be outside the project root)')
+  .option('--dry-run', 'print the file operations without writing anything')
+  .action((dir, opts) => runSplitConvertCmd(dir, opts).catch(handleError));
 
 // --------------------------------------------------------------------- all
 program

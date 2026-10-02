@@ -5,12 +5,47 @@
 - Linked the GitHub repository (`sandeepVarma9902/react-vite-optimizer`) and
   homepage in `package.json` — the npm page now points at the public source.
 
-## 2.0.0 — unreleased
+## 2.0.0 — 2026-10-02
 
-Not published yet. Everything in this section is implemented and tested
-locally. `migrate` is a commercial command (license required, same gate as
-`fix`/`upgrade`/`all`); `analyze` and `doctor` stay free. The license engine
-is untouched.
+The migration release. `analyze`, `doctor`, `assess` and `split` (analysis)
+are free forever; `fix` / `upgrade` / `migrate` / `plan` / `split convert`
+require a commercial license key (same gate). The license engine is untouched.
+
+### Cross-framework migration (React → Vue / Angular)
+- **New: `rvo assess`** (free) — migration readiness analyzer. Inventory
+  (components, hooks, router, state, styling, tests), a 107-library
+  framework-equivalence knowledge base (`src/assess-libs.json`: native /
+  binding / replace / blocked per target), blockers flagged up front
+  (React-only libraries with file + suggested alternative, react-native
+  imports, `dangerouslySetInnerHTML`, custom webpack config), per-module
+  red/yellow/green complexity scores, leaf-first migration order, and a
+  `feasible` / `feasible-with-caveats` / `high-risk` verdict. `--json` /
+  `--html` reports.
+- **New: `rvo plan`** (license required) — generates the migration
+  architecture blueprint from the assess output: target decisions (state,
+  router, styling, testing) with rationale, per-module S/M/L effort in
+  migration order, scaffold checklist, and a risk register.
+- **New: `rvo migrate --to <vue|angular> --out <dir>`** (license required) —
+  mechanical component converter (Vue Composition-API SFCs; Angular
+  standalone components + signals). Conservative by design: anything it
+  can't confidently convert gets a loud `TODO(human)` marker instead of
+  silently wrong code. Never touches source; `--dry-run` previews.
+
+### Microfrontends
+- **New: `rvo split`** (free) — microfrontend readiness analysis: feature
+  detection (dirs + route groups), cross-feature coupling matrix with
+  high-risk pairs flagged, shared surface (components, context, state
+  libs), per-feature size estimates, and an honest
+  `not-needed` / `worth-considering` / `recommended` verdict with a
+  hand-editable plan JSON.
+- **New: `rvo split convert --plan <plan.json> --out <dir>`** (license
+  required) — generates a Module Federation monorepo (shell + remotes,
+  `@originjs/vite-plugin-federation` configs with REVIEW headers,
+  `MIGRATION-NOTES.md` with manual steps and an explicit "what rvo did
+  NOT do" section). Runs only from your approved plan.
+
+### CRA → Vite and React 19 migrations
+Previously implemented and tested locally, now published in this release.
 
 - **New top-level command: `rvo migrate`** (`src/migrate.js`). Every migration
   follows the same pipeline: **detect → plan → transform → verify**.

@@ -1,0 +1,14 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.search {
+  padding: 8px;
+  border: 1px solid #ccc;
+}
+
+.loading {
+  color: #888;
+}
