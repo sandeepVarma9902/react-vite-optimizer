@@ -25,6 +25,10 @@
   .btn-primary { background:var(--acc); color:#06222c; }
   .btn-ghost { border:1px solid #2a3448; color:var(--text); }
   .note { color:var(--dim); font-size:14px; text-align:center; }
+  .topnav { text-align:center; padding:22px 0 6px; }
+  .topnav a { color:var(--dim); text-decoration:none; font-size:14px; margin:0 14px; }
+  .topnav a:hover { color:var(--acc); }
+  .topnav a.cur { color:var(--acc); }
   section { padding:56px 0; border-top:1px solid #161c2a; }
   h2 { font-size:30px; letter-spacing:-0.5px; margin-bottom:24px; text-align:center; }
   .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; }
@@ -69,8 +73,15 @@
 </head>
 <body>
 <div class="wrap">
+  <nav class="topnav">
+    <a href="index.html" class="cur">Home</a>
+    <a href="docs.html">Docs</a>
+    <a href="portfolio.html">Portfolio</a>
+    <a href="https://www.npmjs.com/package/react-vite-optimizer">npm</a>
+    <a href="https://github.com/sandeepVarma9902/react-vite-optimizer">GitHub</a>
+  </nav>
   <header>
-    <div class="badge">for React + Vite codebases</div>
+    <div class="badge">v2.0 — now with cross-framework migration &amp; microfrontend tools</div>
     <h1>Your React app is slower than it should be.<br><span class="grad">Fix it in 30 seconds.</span></h1>
     <p class="sub">Every un-split route, every wasted re-render, every stale dependency is load time your users feel — and Google penalizes. <b>rvo</b> finds every <i>safe</i> React.lazy, React.memo, and useMemo win in your codebase and upgrades your dependencies to latest stable. The performance pass you keep postponing, done in one command.</p>
     <div class="term"><span class="c"># see what it would change — touches nothing</span><br><span class="w">$ npx react-vite-optimizer analyze ./my-app</span><br><br><span class="c"># apply every safe optimization</span><br><span class="w">$ </span><span class="b">rvo fix</span><span class="w"> && </span><span class="b">rvo upgrade</span><span class="w">  </span><span class="g"># or just: rvo all</span></div>
@@ -99,6 +110,16 @@
       <div class="card"><h3><span class="e">💾</span>Cache the expensive stuff, safely</h3><p>Wraps costly render-time computations (map/filter/reduce/sort…) in useMemo with statically inferred dependency arrays. Anything ambiguous is left alone — no stale-closure roulette.</p></div>
       <div class="card"><h3><span class="e">📦</span>Kill dependency rot</h3><p>Bumps deps to their latest <i>stable</i> versions from the npm registry. Major upgrades are opt-in. Non-semver ranges are never touched.</p></div>
     </div>
+  </section>
+
+  <section>
+    <h2>New in rvo 2.0</h2>
+    <div class="grid">
+      <div class="card"><h3><span class="e">🔀</span>Cross-framework migration</h3><p>React → Vue or Angular, assessed before it's attempted. <code>rvo assess</code> gives you a <b>free</b> readiness report — blockers flagged up front, a 107-library equivalence map, and a go/no-go verdict. Then <code>rvo plan</code> architects the target and <code>rvo migrate</code> converts it — Vue SFCs or Angular signals, with <code>TODO(human)</code> markers wherever judgment is needed. Your source is never touched.</p></div>
+      <div class="card"><h3><span class="e">🧩</span>Microfrontends, honestly assessed</h3><p><code>rvo split</code> analyzes your app for <b>free</b> — feature clusters, a coupling matrix, shared-state surface — and gives an honest verdict: not needed, worth considering, or recommended. If you approve the plan, <code>rvo split convert</code> generates the Module Federation monorepo from it. No hype, no forced splits.</p></div>
+    </div>
+    <div class="term" style="margin-top:20px"><span class="c"># migration readiness — free</span><br><span class="w">$ rvo assess ./my-app --to vue</span><br><br><span class="c"># microfrontend readiness — free</span><br><span class="w">$ rvo split ./my-app</span><br><br><span class="c"># execution (licensed): plan → convert → verify</span><br><span class="w">$ rvo plan ./my-app --to vue</span><br><span class="w">$ rvo migrate ./my-app --to vue --out ./vue-app</span><br><span class="w">$ rvo split convert --plan split-plan.json --out ./microfrontends</span></div>
+    <p class="note" style="margin-top:16px">Assessment is always free. Execution is licensed per codebase. <a href="portfolio.html" style="color:var(--acc)">See real output in our portfolio →</a></p>
   </section>
 
   <section>
@@ -134,7 +155,7 @@
         <div class="t">Solo — commercial</div>
         <div class="amt">$29<span> one-time</span></div>
         <div style="color:var(--dim);font-size:14px;margin-top:-4px"><s>$49</s> launch price</div>
-        <ul><li>Everything in Free</li><li>Use at work / for clients</li><li>1 developer, lifetime v1.x updates</li><li>License key + invoice</li><li>Priority support</li></ul>
+        <ul><li>Everything in Free</li><li>Use at work / for clients</li><li>1 developer, lifetime v2.x updates</li><li>License key + invoice</li><li>Priority support</li></ul>
         <!-- TODO: Lemon Squeezy checkout URL -->
         <a class="btn btn-primary" href="#" data-buy="solo">Buy Solo</a>
       </div>
@@ -142,7 +163,7 @@
         <div class="t">Team — commercial</div>
         <div class="amt">$99<span> one-time</span></div>
         <div style="color:var(--dim);font-size:14px;margin-top:-4px"><s>$149</s> launch price</div>
-        <ul><li>Everything in Solo</li><li>Up to 10 developers</li><li>Lifetime v1.x updates</li><li>License key + invoice</li><li>Priority support</li></ul>
+        <ul><li>Everything in Solo</li><li>Up to 10 developers</li><li>Lifetime v2.x updates</li><li>License key + invoice</li><li>Priority support</li></ul>
         <!-- TODO: Lemon Squeezy checkout URL -->
         <a class="btn btn-ghost" href="#" data-buy="team">Buy Team</a>
       </div>
@@ -156,13 +177,13 @@
       <details><summary>Can't I just do this by hand?</summary><p>You can — and that's exactly why it never gets done. A careful manual pass takes hours, it's boring, and you'll miss edge cases (unused imports, name collisions, ambiguous deps) that rvo's AST checks catch automatically. This is the 30-second version of the performance audit you'd pay a consultant thousands for.</p></details>
       <details><summary>Will it break my code?</summary><p>It's designed not to. Every transform is a Babel AST edit with conservative guards: ambiguous useMemo cases are skipped, unused imports are never lazy-loaded, name collisions abort the edit, and files that fail safe analysis are left untouched. Run <code>analyze</code> first to review everything, and keep git — the tool is idempotent, so re-running is always safe.</p></details>
       <details><summary>Why pay if the npm package is free?</summary><p><code>rvo analyze</code> is free for everyone, forever. The commercial license unlocks <code>fix</code>, <code>upgrade</code>, and <code>all</code> for use at work or for clients — $29 at launch pricing ($49 regular), the same model as tools like Sidekiq or Tailwind UI. Companies comply with licenses; that's the whole business model.</p></details>
-      <details><summary>One-time or subscription?</summary><p>One-time. You pay once per developer and get all v1.x updates forever. Subscriptions make sense for hosted services, not for a tool you run on your own machine.</p></details>
+      <details><summary>One-time or subscription?</summary><p>One-time. You pay once per developer and get all v2.x updates forever. Subscriptions make sense for hosted services, not for a tool you run on your own machine.</p></details>
       <details><summary>Does it work with TypeScript?</summary><p>Yes — .ts and .tsx are parsed natively, including typed props and interfaces.</p></details>
     </div>
   </section>
 
   <footer>
-    Built by <a href="#">Sandeep</a> · <a href="https://www.npmjs.com/package/react-vite-optimizer">npm</a> · <a href="docs.html">Docs</a> · <a href="#">GitHub</a> · <a href="#">Contact</a> · <a href="mailto:support@rvo-tools.lemonsqueezy.com">Feedback</a><br>
+    Built by <a href="#">Sandeep</a> · <a href="https://www.npmjs.com/package/react-vite-optimizer">npm</a> · <a href="docs.html">Docs</a> · <a href="portfolio.html">Portfolio</a> · <a href="https://github.com/sandeepVarma9902/react-vite-optimizer">GitHub</a> · <a href="mailto:support@rvo-tools.lemonsqueezy.com">Contact</a> · <a href="mailto:support@rvo-tools.lemonsqueezy.com">Feedback</a><br>
     <span style="font-size:12px">© 2026 — 14-day money-back guarantee on all paid licenses. Free for personal/OSS use.</span>
   </footer>
 </div>
@@ -187,9 +208,9 @@ const STORE = {
 
 const PLANS = {
   solo: { name: "rvo Solo — commercial license", price: 29, regular: 49,
-          desc: "1 developer · lifetime v1.x updates · license key + invoice" },
+          desc: "1 developer · lifetime v2.x updates · license key + invoice" },
   team: { name: "rvo Team — commercial license", price: 99, regular: 149,
-          desc: "Up to 10 developers · lifetime v1.x updates · license key + invoice" },
+          desc: "Up to 10 developers · lifetime v2.x updates · license key + invoice" },
 };
 
 const overlay = document.getElementById('buyOverlay');

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>rvo — Portfolio: migrations &amp; microfrontends, done carefully</title>
+<meta name="description" content="Portfolio of rvo (react-vite-optimizer): cross-framework migration and microfrontend conversion tooling, with real terminal output and a careful assess → plan → approve → convert methodology.">
+<style>
+  :root { --bg:#0b0e14; --panel:#11151f; --text:#e6e9f0; --dim:#9aa3b2; --acc:#61dafb; --green:#3fb950; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; line-height:1.6; }
+  .wrap { max-width:880px; margin:0 auto; padding:0 24px; }
+  .topnav { text-align:center; padding:22px 0 6px; }
+  .topnav a { color:var(--dim); text-decoration:none; font-size:14px; margin:0 14px; }
+  .topnav a:hover { color:var(--acc); }
+  .topnav a.cur { color:var(--acc); }
+  header { padding:56px 0 48px; text-align:center; }
+  .badge { display:inline-block; font-size:13px; color:var(--acc); border:1px solid #1e3a46; background:#0e1a21; padding:4px 14px; border-radius:999px; margin-bottom:20px; }
+  h1 { font-size:46px; letter-spacing:-1.5px; line-height:1.1; margin-bottom:16px; }
+  h1 .grad { background:linear-gradient(90deg,#61dafb,#a78bfa); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub { color:var(--dim); font-size:18px; max-width:680px; margin:0 auto 32px; }
+  .cta-row { display:flex; gap:12px; justify-content:center; margin:28px 0 8px; flex-wrap:wrap; }
+  .btn { display:inline-block; padding:13px 28px; border-radius:10px; font-weight:600; font-size:16px; text-decoration:none; }
+  .btn-primary { background:var(--acc); color:#06222c; }
+  .btn-ghost { border:1px solid #2a3448; color:var(--text); }
+  .note { color:var(--dim); font-size:14px; text-align:center; }
+  section { padding:56px 0; border-top:1px solid #161c2a; }
+  h2 { font-size:30px; letter-spacing:-0.5px; margin-bottom:24px; text-align:center; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; }
+  .card { background:var(--panel); border:1px solid #1d2536; border-radius:12px; padding:22px; }
+  .card h3 { font-size:17px; margin-bottom:8px; }
+  .card h3 .e { margin-right:8px; }
+  .card p { color:var(--dim); font-size:15px; }
+  .card code { color:var(--acc); font-size:13.5px; }
+  .card .tag { display:inline-block; font-size:12px; padding:2px 10px; border-radius:999px; margin-top:10px; }
+  .tag.free { color:var(--green); border:1px solid #1d4429; background:#0d1a12; }
+  .tag.paid { color:#d8a94e; border:1px solid #4a3a1c; background:#1a1408; }
+  .card a { color:var(--acc); text-decoration:none; }
+  .term { background:#05070c; border:1px solid #1d2536; border-radius:12px; padding:22px 24px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13.5px; text-align:left; max-width:720px; margin:0 auto 16px; overflow-x:auto; }
+  .term pre { font:inherit; margin:0; white-space:pre; }
+  .evlabel { font-size:13px; color:var(--dim); margin:28px auto 8px; max-width:720px; }
+  .evlabel b { color:var(--text); }
+  .evlabel:first-of-type { margin-top:0; }
+  footer { padding:40px 0 64px; text-align:center; color:var(--dim); font-size:14px; border-top:1px solid #161c2a; }
+  footer a { color:var(--acc); text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="topnav">
+    <a href="index.html">Home</a>
+    <a href="docs.html">Docs</a>
+    <a href="portfolio.html" class="cur">Portfolio</a>
+    <a href="https://www.npmjs.com/package/react-vite-optimizer">npm</a>
+    <a href="https://github.com/sandeepVarma9902/react-vite-optimizer">GitHub</a>
+  </nav>
+
+  <header>
+    <div class="badge">portfolio — migrations &amp; microfrontends</div>
+    <h1>We build the tools that <span class="grad">modernize frontends.</span></h1>
+    <p class="sub">We're the builders of <b>rvo</b> (react-vite-optimizer) — a CLI for React modernization: performance codemods, dependency upgrades, cross-framework migration, and microfrontend conversion. For clients we do <b>assess → plan → execute</b>: React ↔ Vue ↔ Angular migrations, and microfrontend readiness analysis + conversion — with the plan approved by you before anything changes.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="mailto:support@rvo-tools.lemonsqueezy.com">Get a free assessment</a>
+      <a class="btn btn-ghost" href="https://www.npmjs.com/package/react-vite-optimizer">See rvo on npm</a>
+    </div>
+    <p class="note">Assessments are free. Execution is quoted per codebase.</p>
+  </header>
+
+  <section>
+    <h2>The tools</h2>
+    <div class="grid">
+      <div class="card"><h3><span class="e">🔍</span>rvo assess</h3><p>Cross-framework migration readiness. Blockers flagged up front, 107-library equivalence map, go/no-go verdict.</p><p style="margin-top:10px"><code>rvo assess ./my-app --to vue</code></p><span class="tag free">free</span></div>
+      <div class="card"><h3><span class="e">🗺️</span>rvo plan</h3><p>Migration architecture blueprint generated from the assessment — target structure, module order, library replacements.</p><p style="margin-top:10px"><code>rvo plan ./my-app --to vue</code></p><span class="tag paid">licensed</span></div>
+      <div class="card"><h3><span class="e">🔀</span>rvo migrate</h3><p>The conversion. Vue SFCs / Angular signals out, <code>TODO(human)</code> markers wherever judgment is needed. Source never touched.</p><p style="margin-top:10px"><code>rvo migrate ./my-app --to vue --out ./vue-app</code></p><span class="tag paid">licensed</span></div>
+      <div class="card"><h3><span class="e">🧩</span>rvo split</h3><p>Microfrontend readiness analysis. Feature clusters, coupling matrix, and an honest verdict: not needed / worth considering / recommended.</p><p style="margin-top:10px"><code>rvo split ./my-app</code></p><span class="tag free">free</span></div>
+      <div class="card"><h3><span class="e">📦</span>rvo split convert</h3><p>Module Federation monorepo generated from your approved plan — remotes, shell, shared modules wired up.</p><p style="margin-top:10px"><code>rvo split convert --plan split-plan.json --out ./microfrontends</code></p><span class="tag paid">licensed</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Real evidence, not mockups</h2>
+    <p class="note" style="max-width:640px;margin:0 auto 8px">The actual terminal output of the real CLI — pasted verbatim, no editing. Notice what it does: it tells you what's <i>blocked</i> before it tells you what's possible.</p>
+
+    <p class="evlabel"><b>1.</b> <code>rvo assess</code> — React → Vue readiness on a demo codebase. Verdict: HIGH RISK, with the blockers named up front.</p>
+    <div class="term"><pre>rvo assess — react → vue
+  /home/hatch/workspace/react-vite-optimizer/test/fixtures/assess-demo
+
+  Verdict: HIGH RISK
+    • 1 blocker(s): slate
+    • 1 class component(s) — idiom differs on the target; plan rewrites
+    • 3 libraries need replacing with a target-framework alternative
+
+Inventory
+  7 components (6 function, 1 class) · 142 LOC · 6 files
+  TypeScript: no (0 ts / 6 js)
+  Hooks: useState ×2, useUsers ×1, useEffect ×1
+    custom: useUsers
+  Context: 0 provider(s), 0 consumer(s)
+  Router: react-router-dom (3 route(s))
+  Styling: CSS modules
+  Tests: 1 unit file(s) (vitest) · e2e: none
+
+Blockers (1)
+  ✗ slate — React-only; no Vue port exists.
+      src/components/Editor.jsx
+      → Consider TipTap (@tiptap/vue-3) or Quill (@vueup/vue-quill).
+
+Libraries (6)
+  blocked slate (1 file)
+  replace react → vue (4 files)
+  replace react-dom → vue (1 file)
+  replace react-router-dom → vue-router (2 files)
+  binding @tanstack/react-query → @tanstack/vue-query (2 files)
+  1 framework-agnostic (move as-is): axios
+
+Module complexity
+  ● components         green  score 5.4   (4 files)
+  ● (root)             green  score 2.4   (2 files)
+
+Suggested migration order (leaf modules first)
+  1. components
+  2. (root)
+
+  rvo assess is free. `rvo migrate` (commercial) executes the plan: detect → plan → transform → verify.</pre></div>
+
+    <p class="evlabel"><b>2.</b> <code>rvo split</code> — microfrontend analysis on a demo app. Verdict: RECOMMENDED, with coupling risks called out before any split.</p>
+    <div class="term"><pre>rvo split — microfrontend analysis
+  /home/hatch/workspace/react-vite-optimizer/test/fixtures/split-demo
+
+  Verdict: RECOMMENDED
+    · 3 independently-routable feature areas with low coupling (8% cross-feature imports) — strong microfrontend candidates.
+    · Shared state (ShopContext) is used by account, shop — keep it in the shell or a shared federation module.
+
+  Feature candidates (3):
+    ● account — 9 files, 328 LOC — routes: /account, /account/*
+    ● admin — 8 files, 339 LOC — routes: /admin/*
+    ● shop — 13 files, 457 LOC — routes: /shop/*
+
+  Coupling — cross-feature imports: 3 (8% of feature imports; 33 intra-feature)
+    ✗ admin → shop — 3 imports (risk: high)
+        src/admin/AdminPanel.jsx → src/shop/ProductCard.jsx
+        src/admin/AdminPanel.jsx → src/shop/shopApi.js
+        src/admin/UserTable.jsx → src/shop/useCart.js
+
+  Shared surface (keep in shell / shared modules):
+    dirs: components (7 files), hooks (3 files), utils (2 files), context (1 files)
+    state: ShopContext (src/context/ShopContext.jsx) — used by account, shop
+    state libs: zustand
+
+  Recommendations:
+    remotes: shop, account, admin
+    shell keeps: app shell, router, auth, design system
+    shared via federation: react, react-dom, react-router-dom, zustand
+
+  Risks:
+    ! Decouple "admin → shop" (3 cross-imports, risk: high) before extracting — move the shared code into the shell or a shared module first.
+
+  Next steps:
+    rvo split --json --output split-plan.json   # review &amp; edit the plan
+    rvo split convert --plan split-plan.json --out ./microfrontends   # license required</pre></div>
+
+    <div class="grid" style="margin-top:24px">
+      <div class="card"><h3><span class="e">🤝</span>Uncertain parts are marked, not guessed</h3><p>The converter writes <code>TODO(human)</code> markers wherever a transform needs judgment — idiom differences, ambiguous state, framework-specific APIs. We'd rather flag it than fake it.</p></div>
+      <div class="card"><h3><span class="e">🙅</span>Honest verdicts, including "don't"</h3><p>The split analyzer says <b>not needed</b> when your app doesn't warrant microfrontends. We'd rather talk you out of a migration than sell you a bad one.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Track record</h2>
+    <div class="grid">
+      <div class="card"><h3><span class="e">📦</span>npm package</h3><p><a href="https://www.npmjs.com/package/react-vite-optimizer">react-vite-optimizer</a> v2.0.0 — published on the public registry, installable anywhere with <code>npx</code>. No signup to try the free commands.</p></div>
+      <div class="card"><h3><span class="e">🐙</span>GitHub repo</h3><p><a href="https://github.com/sandeepVarma9902/react-vite-optimizer">sandeepVarma9902/react-vite-optimizer</a> — source, issues, and changelog in the open. Review the code before you trust it.</p></div>
+      <div class="card"><h3><span class="e">✅</span>290+ passing test assertions</h3><p>Every transform is covered by automated tests — codemods are idempotent, ambiguous cases are skipped by construction, and the suite runs on every change.</p></div>
+      <div class="card"><h3><span class="e">📜</span>Changelog</h3><p><a href="https://github.com/sandeepVarma9902/react-vite-optimizer/blob/main/CHANGELOG.md">Every release documented</a> — what changed, what was fixed, what to expect next. No silent behavior changes.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>How we work</h2>
+    <div class="grid">
+      <div class="card"><h3><span class="e">1️⃣</span>Assess — free</h3><p>We run <code>rvo assess</code> / <code>rvo split</code> on your codebase. You get a written report: inventory, blockers, complexity, and an honest verdict.</p></div>
+      <div class="card"><h3><span class="e">2️⃣</span>Plan</h3><p>The assessment becomes an architecture blueprint: target structure, migration order, replacements for blocked libraries, effort estimate.</p></div>
+      <div class="card"><h3><span class="e">3️⃣</span>You approve</h3><p>Nothing changes until you sign off on the plan. Review it, edit it, ask questions. The plan is the contract.</p></div>
+      <div class="card"><h3><span class="e">4️⃣</span>Convert</h3><p>Licensed execution: detect → plan → transform → verify. Output lands in a fresh directory — <b>your source files are never modified in place.</b></p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Need it done for you?</h2>
+    <p class="note" style="max-width:600px;margin:0 auto 24px;font-size:16px">Need a migration or microfrontend conversion done for you? We do the assessment <b>free</b> and quote the execution per codebase. Large frontend architectures handled carefully — phased, reviewable, reversible.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="mailto:support@rvo-tools.lemonsqueezy.com">Start with a free assessment</a>
+      <a class="btn btn-ghost" href="index.html">← Back to rvo home</a>
+    </div>
+  </section>
+
+  <footer>
+    Built by <a href="#">Sandeep</a> · <a href="https://www.npmjs.com/package/react-vite-optimizer">npm</a> · <a href="docs.html">Docs</a> · <a href="https://github.com/sandeepVarma9902/react-vite-optimizer">GitHub</a> · <a href="mailto:support@rvo-tools.lemonsqueezy.com">Contact</a><br>
+    <span style="font-size:12px">© 2026 — assessments free; execution quoted per codebase.</span>
+  </footer>
+</div>
+</body>
+</html>
