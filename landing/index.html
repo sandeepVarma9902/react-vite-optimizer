@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>rvo — one-command React performance</title>
+<meta name="description" content="rvo analyzes your React + Vite codebase and applies React.lazy, React.memo, and useMemo exactly where they're safe. One command.">
+<!-- Lemon Squeezy checkout overlay: opens the real checkout in-page once
+     STORE.solo / STORE.team URLs are set (see STORE-SETUP.md). -->
+<script src="https://app.lemonsqueezy.com/js/lemon.js" defer></script>
+<style>
+  :root { --bg:#0b0e14; --panel:#11151f; --text:#e6e9f0; --dim:#9aa3b2; --acc:#61dafb; --green:#3fb950; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; line-height:1.6; }
+  .wrap { max-width:880px; margin:0 auto; padding:0 24px; }
+  header { padding:72px 0 48px; text-align:center; }
+  .badge { display:inline-block; font-size:13px; color:var(--acc); border:1px solid #1e3a46; background:#0e1a21; padding:4px 14px; border-radius:999px; margin-bottom:20px; }
+  h1 { font-size:52px; letter-spacing:-1.5px; line-height:1.1; margin-bottom:16px; }
+  h1 .grad { background:linear-gradient(90deg,#61dafb,#a78bfa); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub { color:var(--dim); font-size:19px; max-width:640px; margin:0 auto 32px; }
+  .term { background:#05070c; border:1px solid #1d2536; border-radius:12px; padding:22px 24px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:15px; text-align:left; max-width:640px; margin:0 auto 16px; overflow-x:auto; }
+  .term .c { color:#6b7688; } .term .g { color:var(--green); } .term .w { color:#e6e9f0; } .term .b { color:var(--acc); }
+  .cta-row { display:flex; gap:12px; justify-content:center; margin:28px 0 8px; flex-wrap:wrap; }
+  .btn { display:inline-block; padding:13px 28px; border-radius:10px; font-weight:600; font-size:16px; text-decoration:none; }
+  .btn-primary { background:var(--acc); color:#06222c; }
+  .btn-ghost { border:1px solid #2a3448; color:var(--text); }
+  .note { color:var(--dim); font-size:14px; text-align:center; }
+  section { padding:56px 0; border-top:1px solid #161c2a; }
+  h2 { font-size:30px; letter-spacing:-0.5px; margin-bottom:24px; text-align:center; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; }
+  .card { background:var(--panel); border:1px solid #1d2536; border-radius:12px; padding:22px; }
+  .card h3 { font-size:17px; margin-bottom:8px; }
+  .card h3 .e { margin-right:8px; }
+  .card p { color:var(--dim); font-size:15px; }
+  .pricing { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; max-width:720px; margin:0 auto; }
+  .price { background:var(--panel); border:1px solid #1d2536; border-radius:14px; padding:28px; text-align:center; }
+  .price.hot { border-color:var(--acc); }
+  .price .t { font-weight:700; font-size:18px; margin-bottom:4px; }
+  .price .amt { font-size:42px; font-weight:800; margin:8px 0; }
+  .price .amt span { font-size:15px; color:var(--dim); font-weight:400; }
+  .price ul { list-style:none; color:var(--dim); font-size:14px; margin:16px 0 22px; }
+  .price ul li { margin:6px 0; }
+  .faq { max-width:640px; margin:0 auto; }
+  .faq details { background:var(--panel); border:1px solid #1d2536; border-radius:10px; padding:16px 20px; margin-bottom:10px; }
+  .faq summary { cursor:pointer; font-weight:600; }
+  .faq p { color:var(--dim); font-size:15px; margin-top:8px; }
+  footer { padding:40px 0 64px; text-align:center; color:var(--dim); font-size:14px; border-top:1px solid #161c2a; }
+  footer a { color:var(--acc); text-decoration:none; }
+  /* checkout modal */
+  .overlay { position:fixed; inset:0; background:rgba(3,5,9,.78); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; padding:20px; z-index:50; }
+  .overlay.open { display:flex; }
+  .modal { background:var(--panel); border:1px solid #2a3448; border-radius:16px; max-width:440px; width:100%; padding:32px; position:relative; animation:pop .18s ease-out; }
+  @keyframes pop { from { transform:translateY(10px) scale(.98); opacity:0; } }
+  .modal .x { position:absolute; top:14px; right:16px; background:none; border:none; color:var(--dim); font-size:22px; cursor:pointer; }
+  .modal h3 { font-size:21px; margin-bottom:4px; }
+  .modal .plan-sub { color:var(--dim); font-size:14px; margin-bottom:18px; }
+  .order { background:#05070c; border:1px solid #1d2536; border-radius:10px; padding:16px 18px; margin-bottom:18px; font-size:15px; }
+  .order .row { display:flex; justify-content:space-between; margin:6px 0; }
+  .order .row.total { border-top:1px solid #1d2536; margin-top:10px; padding-top:10px; font-weight:700; }
+  .order .save { color:var(--green); font-size:13px; }
+  .modal label { display:block; font-size:13px; color:var(--dim); margin-bottom:6px; }
+  .modal input[type=email] { width:100%; padding:12px 14px; border-radius:10px; border:1px solid #2a3448; background:#05070c; color:var(--text); font-size:15px; margin-bottom:14px; }
+  .modal input[type=email]:focus { outline:none; border-color:var(--acc); }
+  .modal .fine { color:var(--dim); font-size:12.5px; text-align:center; margin-top:12px; }
+  .modal .err { color:#f47067; font-size:13px; margin:-8px 0 10px; display:none; }
+  .success-check { font-size:44px; text-align:center; margin-bottom:12px; }
+  .modal .center { text-align:center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="badge">for React + Vite codebases</div>
+    <h1>Your React app is slower than it should be.<br><span class="grad">Fix it in 30 seconds.</span></h1>
+    <p class="sub">Every un-split route, every wasted re-render, every stale dependency is load time your users feel — and Google penalizes. <b>rvo</b> finds every <i>safe</i> React.lazy, React.memo, and useMemo win in your codebase and upgrades your dependencies to latest stable. The performance pass you keep postponing, done in one command.</p>
+    <div class="term"><span class="c"># see what it would change — touches nothing</span><br><span class="w">$ npx react-vite-optimizer analyze ./my-app</span><br><br><span class="c"># apply every safe optimization</span><br><span class="w">$ </span><span class="b">rvo fix</span><span class="w"> && </span><span class="b">rvo upgrade</span><span class="w">  </span><span class="g"># or just: rvo all</span></div>
+    <div class="cta-row">
+      <!-- TODO: replace hrefs with Lemon Squeezy checkout URLs -->
+      <a class="btn btn-primary" href="#pricing">Fix my React app — $29</a>
+      <a class="btn btn-ghost" href="https://www.npmjs.com/package/react-vite-optimizer">Try it free on npm</a>
+    </div>
+    <p class="note">Free forever for personal, educational &amp; open-source use.</p>
+  </header>
+
+  <section>
+    <h2>You can't afford to skip this</h2>
+    <div class="grid">
+      <div class="card"><h3><span class="e">📉</span>Slow pages lose rankings</h3><p>Google's Core Web Vitals punish slow loads — and un-split React bundles are the #1 cause. Every route you don't code-split is JavaScript your users download for pages they never visit.</p></div>
+      <div class="card"><h3><span class="e">🥵</span>Re-render jank feels broken</h3><p>Lists that re-render on every keystroke, dashboards that stutter — users feel it even if they can't name it. The fix is memoization, but hand-applying it across a codebase takes hours nobody has.</p></div>
+      <div class="card"><h3><span class="e">🧟</span>Dependency rot is silent debt</h3><p>Outdated deps mean missed performance fixes and unpatched vulnerabilities. Nobody upgrades on schedule by hand. rvo does it in one command — majors held back until you opt in.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What it does</h2>
+    <div class="grid">
+      <div class="card"><h3><span class="e">⚡</span>Ship less JS on first load</h3><p>Wraps route &amp; page components in React.lazy + Suspense. Handles default <i>and</i> named imports, React Router v5, and skips unused imports or name collisions instead of breaking your build.</p></div>
+      <div class="card"><h3><span class="e">🧠</span>Stop re-rendering what didn't change</h3><p>Adds React.memo to function components that take props — including forwardRef. Already memoized? Skipped. No props? Skipped. Class components? Untouched.</p></div>
+      <div class="card"><h3><span class="e">💾</span>Cache the expensive stuff, safely</h3><p>Wraps costly render-time computations (map/filter/reduce/sort…) in useMemo with statically inferred dependency arrays. Anything ambiguous is left alone — no stale-closure roulette.</p></div>
+      <div class="card"><h3><span class="e">📦</span>Kill dependency rot</h3><p>Bumps deps to their latest <i>stable</i> versions from the npm registry. Major upgrades are opt-in. Non-semver ranges are never touched.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Why not just ask an AI?</h2>
+    <div class="grid">
+      <div class="card"><h3><span class="e">🧾</span>Proof, not promises</h3><p>After every <code>fix</code>, rvo re-scans your codebase and prints a before → after verification report — exactly what was found and fixed, in your own terminal. An AI chat gives you rewritten code and hopes it works.</p></div>
+      <div class="card"><h3><span class="e">🗂️</span>Whole codebase, one command</h3><p>rvo scans hundreds of files in about a second and fixes every instance of a pattern consistently. With an AI you paste files one by one and review every diff by hand.</p></div>
+      <div class="card"><h3><span class="e">🔒</span>Deterministic, not probabilistic</h3><p>Every transform is a Babel AST edit with conservative guards — ambiguous cases are skipped, never guessed at. Idempotent: run <code>fix</code> twice and the second run is a no-op. An AI gives you a different rewrite every time and occasionally hallucinates an API.</p></div>
+      <div class="card"><h3><span class="e">🤖</span>Repeatable in CI</h3><p><code>analyze --ci</code> with quality gates fails the build when new performance issues appear. You can't put "ask ChatGPT" in a pipeline and get the same answer twice.</p></div>
+    </div>
+    <p class="note" style="margin-top:20px">None of this replaces AI for novel refactors and judgment calls — that's what it's great at. rvo is the deterministic layer underneath: the known-safe fixes, applied everywhere, with proof. Use both.</p>
+  </section>
+
+  <section>
+    <h2>How it works</h2>
+    <div class="grid">
+      <div class="card"><h3><span class="e">1️⃣</span>Analyze — free, no key</h3><p>Run <code>npx react-vite-optimizer analyze ./my-app</code>. See exactly what rvo finds before you pay anything. No changes, no signup.</p></div>
+      <div class="card"><h3><span class="e">2️⃣</span>Buy a license — one-time</h3><p>Solo for 1 developer, Team for up to 10. One payment, yours forever. 14-day money-back guarantee, no questions asked.</p></div>
+      <div class="card"><h3><span class="e">3️⃣</span>Activate &amp; fix — 30 seconds</h3><p><code>rvo license &lt;your-key&gt;</code>, then <code>rvo fix</code>. rvo re-scans afterwards and prints a before → after verification report — proof of exactly what was done. <a href="docs.html" style="color:var(--acc)">Full user manual →</a></p></div>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <h2>Pricing <span style="font-size:15px;font-weight:400;color:var(--dim)">— launch pricing for the first 100 licenses</span></h2>
+    <div class="pricing">
+      <div class="price">
+        <div class="t">Free</div>
+        <div class="amt">$0<span> forever</span></div>
+        <ul><li><code>rvo analyze</code> — full scan &amp; report</li><li>Personal projects</li><li>Education &amp; coursework</li><li>Open-source projects</li><li>Try before you buy, no signup</li></ul>
+        <a class="btn btn-ghost" href="https://www.npmjs.com/package/react-vite-optimizer">Install free</a>
+      </div>
+      <div class="price hot">
+        <div class="t">Solo — commercial</div>
+        <div class="amt">$29<span> one-time</span></div>
+        <div style="color:var(--dim);font-size:14px;margin-top:-4px"><s>$49</s> launch price</div>
+        <ul><li>Everything in Free</li><li>Use at work / for clients</li><li>1 developer, lifetime v1.x updates</li><li>License key + invoice</li><li>Priority support</li></ul>
+        <!-- TODO: Lemon Squeezy checkout URL -->
+        <a class="btn btn-primary" href="#" data-buy="solo">Buy Solo</a>
+      </div>
+      <div class="price">
+        <div class="t">Team — commercial</div>
+        <div class="amt">$99<span> one-time</span></div>
+        <div style="color:var(--dim);font-size:14px;margin-top:-4px"><s>$149</s> launch price</div>
+        <ul><li>Everything in Solo</li><li>Up to 10 developers</li><li>Lifetime v1.x updates</li><li>License key + invoice</li><li>Priority support</li></ul>
+        <!-- TODO: Lemon Squeezy checkout URL -->
+        <a class="btn btn-ghost" href="#" data-buy="team">Buy Team</a>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>FAQ</h2>
+    <div class="faq">
+      <details><summary>What if it doesn't work for my codebase?</summary><p>Then you shouldn't pay — and you won't have to. <code>analyze</code> is free, so you see exactly what rvo finds before buying. Every paid license carries a <b>14-day money-back guarantee</b>: if rvo doesn't do what it says, email us and you get a refund. No forms, no interrogation. And after every <code>fix</code>, rvo prints a before → after verification report — proof of the work, in your own terminal.</p></details>
+      <details><summary>Can't I just do this by hand?</summary><p>You can — and that's exactly why it never gets done. A careful manual pass takes hours, it's boring, and you'll miss edge cases (unused imports, name collisions, ambiguous deps) that rvo's AST checks catch automatically. This is the 30-second version of the performance audit you'd pay a consultant thousands for.</p></details>
+      <details><summary>Will it break my code?</summary><p>It's designed not to. Every transform is a Babel AST edit with conservative guards: ambiguous useMemo cases are skipped, unused imports are never lazy-loaded, name collisions abort the edit, and files that fail safe analysis are left untouched. Run <code>analyze</code> first to review everything, and keep git — the tool is idempotent, so re-running is always safe.</p></details>
+      <details><summary>Why pay if the npm package is free?</summary><p><code>rvo analyze</code> is free for everyone, forever. The commercial license unlocks <code>fix</code>, <code>upgrade</code>, and <code>all</code> for use at work or for clients — $29 at launch pricing ($49 regular), the same model as tools like Sidekiq or Tailwind UI. Companies comply with licenses; that's the whole business model.</p></details>
+      <details><summary>One-time or subscription?</summary><p>One-time. You pay once per developer and get all v1.x updates forever. Subscriptions make sense for hosted services, not for a tool you run on your own machine.</p></details>
+      <details><summary>Does it work with TypeScript?</summary><p>Yes — .ts and .tsx are parsed natively, including typed props and interfaces.</p></details>
+    </div>
+  </section>
+
+  <footer>
+    Built by <a href="#">Sandeep</a> · <a href="https://www.npmjs.com/package/react-vite-optimizer">npm</a> · <a href="docs.html">Docs</a> · <a href="#">GitHub</a> · <a href="#">Contact</a> · <a href="mailto:support@rvo-tools.lemonsqueezy.com">Feedback</a><br>
+    <span style="font-size:12px">© 2026 — 14-day money-back guarantee on all paid licenses. Free for personal/OSS use.</span>
+  </footer>
+</div>
+
+<!-- checkout / reservation modal -->
+<div class="overlay" id="buyOverlay" role="dialog" aria-modal="true">
+  <div class="modal">
+    <button class="x" id="buyClose" aria-label="Close">&times;</button>
+    <div id="buyBody"></div>
+  </div>
+</div>
+
+<script>
+/* ---- STORE CONFIG ----------------------------------------------------
+   Paste your Lemon Squeezy checkout URLs here (see STORE-SETUP.md).
+   Until then, Buy buttons collect "reserve my launch price" emails.
+------------------------------------------------------------------------ */
+const STORE = {
+  solo: "https://rvo-tools.lemonsqueezy.com/checkout/buy/a3eb5f02-a932-4eca-8602-905d3fa41f27",
+  team: "https://rvo-tools.lemonsqueezy.com/checkout/buy/73e93c8c-f537-44be-a861-3f6e6062cb17"
+};
+
+const PLANS = {
+  solo: { name: "rvo Solo — commercial license", price: 29, regular: 49,
+          desc: "1 developer · lifetime v1.x updates · license key + invoice" },
+  team: { name: "rvo Team — commercial license", price: 99, regular: 149,
+          desc: "Up to 10 developers · lifetime v1.x updates · license key + invoice" },
+};
+
+const overlay = document.getElementById('buyOverlay');
+const buyBody = document.getElementById('buyBody');
+const closeModal = () => overlay.classList.remove('open');
+document.getElementById('buyClose').addEventListener('click', closeModal);
+overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+function money(n) { return '$' + n; }
+
+function reserveModal(planKey) {
+  const p = PLANS[planKey];
+  buyBody.innerHTML = `
+    <h3>Reserve your launch price</h3>
+    <p class="plan-sub">${p.name}</p>
+    <div class="order">
+      <div class="row"><span>${p.name}</span><span><s style="color:var(--dim)">$${p.regular}</s> <b>$${p.price}</b></span></div>
+      <div class="row"><span style="color:var(--dim);font-size:13px">${p.desc}</span></div>
+      <div class="row total"><span>Total today</span><span>$0 — pay at launch</span></div>
+    </div>
+    <div class="save" style="margin-bottom:14px">🔒 Locks in $${p.price} before it rises to $${p.regular}.</div>
+    <form id="reserveForm">
+      <label for="rEmail">Work email</label>
+      <input type="email" id="rEmail" placeholder="you@company.com" required autocomplete="email">
+      <div class="err" id="rErr">Please enter a valid email.</div>
+      <button class="btn btn-primary" type="submit" style="width:100%">Reserve my $${p.price} price</button>
+    </form>
+    <p class="fine">No payment now. We'll email your checkout link the moment the store goes live.</p>`;
+  overlay.classList.add('open');
+  document.getElementById('reserveForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const email = document.getElementById('rEmail').value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      document.getElementById('rErr').style.display = 'block';
+      return;
+    }
+    // Persist locally. For real email collection, POST to Formspree/ConvertKit here.
+    try {
+      const k = 'rvo_reservations';
+      const all = JSON.parse(localStorage.getItem(k) || '[]');
+      all.push({ plan: planKey, email, at: new Date().toISOString() });
+      localStorage.setItem(k, JSON.stringify(all));
+      var n = all.length;
+    } catch { var n = '—'; }
+    buyBody.innerHTML = `
+      <div class="success-check">✅</div>
+      <h3 class="center">You're on the list${typeof n === 'number' ? ' — #' + n : ''}.</h3>
+      <p class="plan-sub center">Your <b>$${p.price}</b> launch price is locked in.<br>Watch <b>${email}</b> for your checkout link.</p>
+      <button class="btn btn-ghost" style="width:100%" onclick="document.getElementById('buyOverlay').classList.remove('open')">Done</button>
+      <p class="fine">Tell a teammate who ships slow React apps.</p>`;
+  });
+}
+
+function openRealCheckout(url) {
+  if (window.LemonSqueezy && window.LemonSqueezy.Url) window.LemonSqueezy.Url.Open(url);
+  else window.location.href = url;
+}
+
+document.querySelectorAll('[data-buy]').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.preventDefault();
+    const plan = btn.getAttribute('data-buy');
+    const url = (STORE[plan] || '').trim();
+    if (url) openRealCheckout(url);
+    else reserveModal(plan);
+  });
+});
+</script>
+</body>
+</html>

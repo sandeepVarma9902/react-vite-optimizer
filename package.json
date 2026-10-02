@@ -1,0 +1,56 @@
+{
+  "bin": {
+    "react-vite-optimizer": "./bin/cli.js",
+    "rvo": "./bin/cli.js"
+  },
+  "dependencies": {
+    "@babel/generator": "^7.24.0",
+    "@babel/parser": "^7.24.0",
+    "@babel/traverse": "^7.24.0",
+    "@babel/types": "^7.24.0",
+    "chalk": "^4.1.2",
+    "commander": "^11.1.0",
+    "fast-glob": "^3.3.2",
+    "ora": "^5.4.1",
+    "semver": "^7.6.0"
+  },
+  "description": "Analyze and optimize React + Vite codebases: upgrade deps to latest stable, React.lazy code-splitting, React.memo and useMemo codemods.",
+  "engines": {
+    "node": ">=16"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE.md"
+  ],
+  "homepage": "https://github.com/sandeepVarma9902/react-vite-optimizer",
+  "keywords": [
+    "react",
+    "vite",
+    "optimizer",
+    "performance",
+    "optimization",
+    "webperf",
+    "bundle",
+    "bundle-analyzer",
+    "codemod",
+    "lazy-loading",
+    "code-splitting",
+    "memo",
+    "cli",
+    "developer-tools",
+    "frontend"
+  ],
+  "license": "SEE LICENSE IN LICENSE.md",
+  "name": "react-vite-optimizer",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sandeepVarma9902/react-vite-optimizer.git"
+  },
+  "scripts": {
+    "test": "node ./test/license.js && node ./test/run.js && node ./test/aggressive.js && node ./test/v12.js && node ./test/migrate.js"
+  },
+  "type": "commonjs",
+  "version": "1.2.1"
+}

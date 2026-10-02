@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>rvo — User Manual</title>
+<meta name="description" content="The rvo user manual: installation, licensing, every command, the verification report, workflows, troubleshooting, and support.">
+<style>
+  :root { --bg:#0b0e14; --panel:#11151f; --text:#e6e9f0; --dim:#9aa3b2; --acc:#61dafb; --green:#3fb950; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; line-height:1.7; }
+  .wrap { max-width:860px; margin:0 auto; padding:0 24px; }
+  header.top { padding:40px 0 8px; border-bottom:1px solid #161c2a; margin-bottom:32px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
+  header.top a { color:var(--acc); text-decoration:none; font-weight:600; }
+  .doc h1 { font-size:36px; letter-spacing:-0.5px; margin:8px 0 16px; }
+  .doc h2 { font-size:24px; margin:40px 0 12px; padding-top:16px; border-top:1px solid #161c2a; }
+  .doc h3 { font-size:18px; margin:24px 0 8px; }
+  .doc p, .doc li { color:#c9d1dd; font-size:15.5px; }
+  .doc p { margin:10px 0; }
+  .doc ul, .doc ol { margin:10px 0 10px 24px; }
+  .doc li { margin:6px 0; }
+  .doc code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13.5px; background:#05070c; border:1px solid #1d2536; border-radius:6px; padding:2px 7px; color:var(--acc); }
+  .doc pre { background:#05070c; border:1px solid #1d2536; border-radius:12px; padding:18px 20px; overflow-x:auto; margin:14px 0; }
+  .doc pre code { background:none; border:none; padding:0; color:var(--text); font-size:14px; }
+  .doc table { width:100%; border-collapse:collapse; margin:14px 0; font-size:14.5px; }
+  .doc th, .doc td { border:1px solid #1d2536; padding:10px 14px; text-align:left; vertical-align:top; }
+  .doc th { background:var(--panel); }
+  .doc td { color:#c9d1dd; }
+  .doc hr { border:none; border-top:1px solid #161c2a; margin:32px 0; }
+  .doc strong { color:var(--text); }
+  footer { padding:40px 0 64px; text-align:center; color:var(--dim); font-size:14px; border-top:1px solid #161c2a; margin-top:48px; }
+  footer a { color:var(--acc); text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><a href="/">&larr; rvo home</a><span style="color:var(--dim);font-size:14px">User manual</span></header>
+  <article class="doc">
+<h1>rvo User Manual</h1>
+<p><strong>react-vite-optimizer · v1.1.0</strong></p>
+<p>This manual covers installation, licensing, every command, the verification
+report, recommended workflows, troubleshooting, and support. It is written for
+working React developers. No marketing language — just how the tool works.</p>
+<hr>
+<h2>1. What rvo is</h2>
+<p><code>rvo</code> is a zero-config command-line tool that scans a React codebase, finds
+common performance issues, and fixes them with safe, idempotent codemods. It
+detects three classes of issues:</p>
+<ul>
+<li><strong>React.lazy code-splitting</strong> — route-level components, files in
+<code>pages/</code>/<code>routes/</code>/<code>views/</code>, files importing heavy libraries
+(recharts, three, d3, monaco, …), or large files, converted from static
+imports to <code>lazy(() =&gt; import(&#39;…&#39;))</code> with <code>&lt;Suspense&gt;</code> boundaries added at
+render sites (react-router v5 aware).</li>
+<li><strong>React.memo</strong> — top-level components receiving props that aren&#39;t memoized
+yet, including <code>forwardRef</code> components.</li>
+<li><strong>useMemo</strong> — expensive render-time computations (<code>map</code>/<code>filter</code>/<code>reduce</code>
+chains, <code>JSON.parse</code>, …) with statically inferred dependency lists.</li>
+</ul>
+<p>It also upgrades project dependencies to their latest stable versions via the
+npm registry (major versions opt-in). Everything it emits is standard ESM +
+<code>import()</code>, which Vite code-splits automatically.</p>
+<hr>
+<h2>2. Prerequisites</h2>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Version / detail</th>
+<th>Why it&#39;s needed</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Node.js</strong></td>
+<td>16 or newer</td>
+<td>rvo runs on Node; the CLI parses your code with Babel and shells out to <code>npm</code> for upgrades.</td>
+</tr>
+<tr>
+<td><strong>npm</strong></td>
+<td>ships with Node</td>
+<td><code>rvo upgrade</code> rewrites <code>package.json</code> and runs <code>npm install</code> unless you pass <code>--no-install</code>.</td>
+</tr>
+<tr>
+<td><strong>A React project</strong></td>
+<td>any React setup; <strong>Vite recommended</strong></td>
+<td>The codemods work on any React codebase (JS/JSX/TS/TSX), but Vite is what turns the emitted <code>import()</code> calls into real code-split chunks at build time. Without Vite you still get correct code, just less automatic benefit.</td>
+</tr>
+<tr>
+<td><strong>Git</strong> (recommended)</td>
+<td>any recent version</td>
+<td><code>rvo fix</code> rewrites source files. A clean <code>git status</code> before you run it means you can <code>git diff</code> every change, review it line by line, and <code>git checkout</code> to undo.</td>
+</tr>
+</tbody></table>
+<p><code>rvo</code> needs <strong>no configuration files and no project changes</strong> to run. Point it
+at a directory and it works.</p>
+<hr>
+<h2>3. Installation</h2>
+<h3>One-off (no install)</h3>
+<pre><code class="language-bash">npx react-vite-optimizer analyze ./my-app
+</code></pre>
+<p><code>npx</code> downloads the latest published version, runs it once, and discards it.
+Good for trying <code>analyze</code> on a single project.</p>
+<h3>Global install (recommended for regular use)</h3>
+<pre><code class="language-bash">npm install -g react-vite-optimizer
+</code></pre>
+<p>This gives you the short <code>rvo</code> alias everywhere:</p>
+<pre><code class="language-bash">rvo analyze ./my-app
+rvo fix ./my-app
+</code></pre>
+<p>Both entry points (<code>react-vite-optimizer</code> and <code>rvo</code>) run the same CLI.</p>
+<h3>Checking your installation</h3>
+<pre><code class="language-bash">rvo --version     # prints the installed version (e.g. 1.1.0)
+rvo --help        # full command list with examples
+rvo &lt;command&gt; --help   # options for one command, e.g. rvo fix --help
+</code></pre>
+<hr>
+<h2>4. Licensing</h2>
+<h3>The model</h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>rvo analyze</code></td>
+<td><strong>Free forever</strong> — for everyone, no key, no account</td>
+</tr>
+<tr>
+<td><code>rvo fix</code>, <code>rvo upgrade</code>, <code>rvo all</code></td>
+<td>Commercial license key required</td>
+</tr>
+<tr>
+<td><code>rvo license</code>, <code>rvo feedback</code></td>
+<td>Free (license management / support)</td>
+</tr>
+</tbody></table>
+<p>The intent is try-before-you-buy: <code>analyze</code> shows you exactly what rvo found
+in <em>your</em> codebase before you spend anything. If it finds nothing, it tells
+you so — and there&#39;s nothing to buy.</p>
+<h3>License tiers</h3>
+<ul>
+<li><strong>Solo</strong> — 1 developer</li>
+<li><strong>Team</strong> — up to 10 developers</li>
+</ul>
+<p>Both are <strong>one-time payments</strong> (not subscriptions), sold through Lemon Squeezy,
+which acts as the merchant of record (handles VAT/GST, invoicing, and
+chargebacks). Current prices are listed on the store. Every purchase includes
+a <strong>14-day money-back guarantee</strong>: if rvo doesn&#39;t do what this manual says it
+does, you get a refund — no forms, no interrogation.</p>
+<p><strong>Buy a key:</strong> <a href="https://rvo-tools.lemonsqueezy.com">https://rvo-tools.lemonsqueezy.com</a></p>
+<p>Your license key is delivered by email after checkout (check spam if you don&#39;t
+see it).</p>
+<h3>Activating your key</h3>
+<pre><code class="language-bash">rvo license              # secure hidden prompt — key never hits shell history
+rvo license &lt;your-key&gt;   # or pass it as an argument (convenient, but visible
+                         # in shell history and the process list)
+</code></pre>
+<p>This activates the key against the Lemon Squeezy license API (claiming one
+activation on your key) and stores it on your machine at
+<code>~/.rvo/license.json</code> (file permissions restricted to your user). On success
+you&#39;ll see the product name and which commands are unlocked. Re-running
+<code>rvo license</code> with the same key does not consume another activation — it
+simply re-validates the one this machine already holds.</p>
+<h3>Managing your license</h3>
+<pre><code class="language-bash">rvo license --check    # re-validate the stored key with the license server
+rvo license --remove   # release this machine&#39;s activation on the license
+                       # server, then remove the key from this machine
+</code></pre>
+<p><code>--remove</code> needs a network connection: the activation slot stays counted
+against your key until the server confirms the deactivation. If you&#39;re
+offline, the local key is kept and you&#39;ll be asked to retry when connected.</p>
+<h3>CI / automated environments</h3>
+<p>Don&#39;t commit keys to repos. Provide the key via environment variable instead:</p>
+<pre><code class="language-bash">RVO_LICENSE_KEY=&lt;your-key&gt; rvo fix ./my-app
+</code></pre>
+<p>The environment variable takes precedence over the stored key and is ideal
+for CI pipelines.</p>
+<h3>Offline behavior</h3>
+<ul>
+<li>After a key is activated, the validation result is <strong>cached locally</strong> and
+re-validated against the license server at most <strong>once per week</strong>.</li>
+<li>If you&#39;re offline but the key validated before, <code>fix</code>/<code>upgrade</code>/<code>all</code>
+<strong>keep working for up to 30 days</strong> from the last successful validation
+(offline grace). You&#39;ll only be blocked if the machine has never
+successfully validated a key, the cached key itself was rejected, or the
+offline grace period has expired.</li>
+</ul>
+<h3>What a locked command looks like</h3>
+<p>Running <code>rvo fix</code> without a key prints a short explanation (including the
+reminder that <code>analyze</code> is free) and exits with a non-zero status — it never
+touches your files.</p>
+<hr>
+<h2>5. Command reference</h2>
+<p>In every command, <code>[dir]</code> is optional and defaults to the current directory.
+rvo walks upward from <code>[dir]</code> to the nearest directory containing
+<code>package.json</code> and treats that as the project root.</p>
+<h3><code>rvo analyze [dir]</code> — free</h3>
+<p>Scans the codebase and prints a report. <strong>Never modifies files.</strong></p>
+<pre><code class="language-bash">rvo analyze                    # scan the current project
+rvo analyze ./my-app           # scan a specific directory
+rvo analyze --only lazy        # only code-splitting candidates
+rvo analyze --only memo,usememo
+rvo analyze --json             # machine-readable output (for CI / tooling)
+rvo analyze --json &gt; report.json
+rvo analyze --html             # self-contained HTML report (rvo-report.html)
+rvo analyze --html --output docs/report.html
+rvo analyze --ci --max-issues 10    # fail CI when more than 10 issues
+rvo analyze --ci --fail-on error    # fail CI on any error-severity finding
+rvo doctor                     # environment + project health check (free)
+</code></pre>
+<p>The report lists, per file: lazy-loading candidates (component, source
+module, reason), memo candidates (component, line, props), and useMemo
+candidates (component, expression, line, inferred deps), plus two advisory
+sections: <strong>bundle budget</strong> (oversized <code>dist/</code> chunks after <code>vite build</code>)
+and <strong>image optimization hints</strong> (large or legacy-format images). It ends
+with either &quot;<code>N</code> optimization(s) found. Run <code>rvo fix</code> to apply them.&quot; or
+&quot;Already optimized — nothing found.&quot;</p>
+<p><code>--only</code> accepts any comma-separated subset of <code>lazy</code>, <code>memo</code>, <code>usememo</code>,
+<code>bundle</code>, <code>images</code>. Unknown values are ignored. <code>bundle</code>/<code>images</code> are
+advisory-only — <code>fix</code> never touches them. Every finding carries a
+<code>severity</code> (<code>info</code>, <code>warning</code>, <code>error</code>); <code>--json</code> output also includes a
+<code>summary</code> with the total and per-severity counts.</p>
+<h3><code>rvo fix [dir]</code> — license required</h3>
+<p>Applies the codemods, then re-scans and prints the verification report
+(see §6).</p>
+<pre><code class="language-bash">rvo fix                        # interactive: confirms each rule group first
+rvo fix -y                     # apply everything without prompting
+rvo fix --dry-run              # preview only — no files are written
+rvo fix --only lazy            # only apply code-splitting transforms
+rvo fix ./my-app -y --only memo,usememo
+</code></pre>
+<p>Behavior notes:</p>
+<ul>
+<li>Without <code>-y</code> or <code>--dry-run</code>, rvo asks once per rule group
+(&quot;Apply N lazy-loading transform(s)?&quot;). Answering &quot;no&quot; skips that group.</li>
+<li><code>--dry-run</code> prints the full fix summary with zero file writes. Use it to
+preview on unfamiliar codebases.</li>
+<li>Transforms are <strong>idempotent</strong>: running <code>fix</code> on an already-fixed codebase
+reports &quot;Already optimized&quot; and changes nothing.</li>
+<li>Cases rvo can&#39;t prove safe are <strong>skipped with a printed reason</strong> (e.g.
+ambiguous props, unsafe patterns). Files that fail safe analysis
+(duplicate declarations, unparseable syntax) are skipped entirely — rvo
+never guesses.</li>
+</ul>
+<h3><code>rvo upgrade [dir]</code> — license required</h3>
+<p>Checks the npm registry for newer stable versions of your dependencies and,
+with confirmation, rewrites <code>package.json</code> and runs <code>npm install</code>.</p>
+<pre><code class="language-bash">rvo upgrade                    # check, confirm, apply, install
+rvo upgrade --dry-run          # show what&#39;s available; change nothing
+rvo upgrade -y                 # apply without prompting
+rvo upgrade --include-major    # also offer major version bumps (off by default)
+rvo upgrade --no-install       # update package.json only, skip npm install
+rvo upgrade --verify           # run `npm run build` after installing
+</code></pre>
+<p>Behavior notes:</p>
+<ul>
+<li><strong>Major versions are excluded by default.</strong> They appear as a separate
+&quot;available&quot; list with a hint to re-run with <code>--include-major</code>. This is
+deliberate: majors are where breaking changes live.</li>
+<li>Non-semver ranges (e.g. <code>*</code>, git URLs, <code>file:</code>) are skipped, never
+rewritten.</li>
+<li>If the npm registry is unreachable, the command fails cleanly with
+&quot;Could not reach the npm registry&quot; and changes nothing.</li>
+<li><code>--verify</code> runs your project&#39;s own <code>npm run build</code> after install as a
+smoke test. If your project has no <code>build</code> script, npm will report that.</li>
+</ul>
+<h3><code>rvo all [dir]</code> — license required</h3>
+<p>Runs <code>fix</code>, then <code>upgrade</code>, in one invocation. Accepts the union of both
+commands&#39; options:</p>
+<pre><code class="language-bash">rvo all -y                     # fix + upgrade, no prompts
+rvo all --dry-run              # preview both steps, change nothing
+rvo all --only lazy --include-major --no-install
+</code></pre>
+<p>If the license check fails, neither step runs.</p>
+<h3><code>rvo license [key]</code> — free</h3>
+<p>Covered in §4: <code>rvo license &lt;key&gt;</code> activates, <code>--check</code> re-validates,
+<code>--remove</code> deletes the stored key.</p>
+<h3><code>rvo feedback [message]</code> — free</h3>
+<pre><code class="language-bash">rvo feedback                                  # prints where to reach us
+rvo feedback &quot;memo rule missed my HOC&quot;        # saves your note locally
+</code></pre>
+<p>With a message, rvo appends an entry (timestamp, rvo version, platform, Node
+version, your message, max 2000 chars) to <code>~/.rvo/feedback-outbox.jsonl</code> and
+prints the support channels. Without a message it just prints the channels.
+Bug reports are most useful with the output of <code>rvo analyze --json</code> attached.</p>
+<hr>
+<h2>6. The verification report</h2>
+<p>After every <code>fix</code> that actually changed files, rvo <strong>re-scans the codebase
+from scratch</strong> and prints a before → after panel:</p>
+<pre><code>Verification — re-scanned after fix
+  ✓ Lazy-loading issues: 4 → 0 remaining
+  ✓ React.memo issues: 7 → 0 remaining
+  ✓ useMemo issues: 1 → 0 remaining
+
+✓ All 12 detected issue(s) resolved.
+</code></pre>
+<h3>How to read it</h3>
+<ul>
+<li>Each row is one rule class: issues found <strong>before</strong> the fix, issues
+<strong>remaining</strong> after it.</li>
+<li>A green <code>✓</code> means that class is fully resolved. A yellow <code>●</code> means some
+items remain — these are the ones rvo skipped for safety, and the reasons
+are printed in the fix summary above the panel.</li>
+<li>The totals line tells you the outcome in one glance: all resolved, or
+&quot;N of M resolved; K remain&quot;.</li>
+</ul>
+<h3>Why it exists</h3>
+<p>This panel is the tool&#39;s <strong>proof of work</strong>. It answers the only question that
+matters after an automated codemod: <em>did it actually do what it claimed?</em>
+Because the &quot;after&quot; numbers come from a fresh scan of your real files — not
+from the transform log — a <code>0 remaining</code> line means the issues are genuinely
+gone from the codebase, not just marked done.</p>
+<p>Two honest limits:</p>
+<ol>
+<li>The report proves the <strong>mechanical issues were fixed</strong>, not that your app
+got faster. If your bottleneck is a slow API, oversized images, or
+layout thrash, no codemod fixes that — and rvo doesn&#39;t claim otherwise.</li>
+<li>If <code>analyze</code> found nothing to begin with, <code>fix</code> tells you so and stops.
+&quot;Nothing to fix&quot; is a valid, complete result.</li>
+</ol>
+<hr>
+<h2>7. Recommended workflow</h2>
+<pre><code class="language-bash"># 1. Start clean — so every change is reviewable
+git status          # commit or stash first; you want a clean tree
+git checkout -b perf/rvo-pass
+
+# 2. See what rvo finds (free, read-only)
+rvo analyze ./my-app
+
+# 3. Preview the changes without writing anything
+rvo fix --dry-run ./my-app
+
+# 4. Apply (license required)
+rvo fix ./my-app
+#    → review the fix summary, skipped items, and verification report
+
+# 5. Review the actual diff
+git diff --stat
+git diff            # read what changed; it&#39;s your code, own the review
+
+# 6. Prove nothing broke
+npm test            # or your test command
+npm run build       # or: rvo upgrade --verify covers the build step
+
+# 7. Ship it
+git add -A &amp;&amp; git commit -m &quot;perf: rvo codemod pass (lazy/memo/useMemo)&quot;
+</code></pre>
+<p><strong>For upgrades</strong>, the same shape applies: <code>rvo upgrade --dry-run</code> first,
+review the list, then apply — and keep <code>--include-major</code> as a separate,
+deliberate decision, ideally on its own branch.</p>
+<p><strong>For CI</strong>, use the built-in gates instead of scripting your own:</p>
+<pre><code class="language-bash">rvo analyze --ci --max-issues 10   # fail when more than 10 issues
+rvo analyze --ci --fail-on error    # fail on any error-severity finding
+</code></pre>
+<p>(<code>analyze</code> needs no license, so it&#39;s free in pipelines.) <code>--ci</code> defaults to
+<code>--max-issues 0</code>; pass a large <code>--max-issues</code> alongside <code>--fail-on</code> to gate
+on severity alone. With <code>--json</code>, the verdict goes to stderr so stdout stays
+parseable.</p>
+<hr>
+<h2>8. Troubleshooting</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>What&#39;s happening</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>A license key is required for this command</code></td>
+<td><code>fix</code>/<code>upgrade</code>/<code>all</code> need a commercial key</td>
+<td>Run <code>rvo analyze</code> free first; buy at <a href="https://rvo-tools.lemonsqueezy.com">https://rvo-tools.lemonsqueezy.com</a>, then <code>rvo license &lt;key&gt;</code></td>
+</tr>
+<tr>
+<td><code>This license key is not valid</code></td>
+<td>The server rejected the key</td>
+<td>Check for typos/extra spaces; the key from your purchase email must be pasted whole. Still failing → contact support with your order email</td>
+</tr>
+<tr>
+<td><code>Could not reach the license server</code></td>
+<td>No network path to the license API</td>
+<td>Check your connection and retry. A previously activated key keeps working offline</td>
+</tr>
+<tr>
+<td><code>Could not reach the npm registry</code> (upgrade)</td>
+<td>Registry unreachable</td>
+<td>Check network/proxy; nothing was changed</td>
+</tr>
+<tr>
+<td><code>fix</code> changed nothing</td>
+<td>Either already optimized, or everything was skipped</td>
+<td>Run <code>rvo analyze</code>: &quot;Already optimized&quot; means there&#39;s genuinely nothing to fix</td>
+</tr>
+<tr>
+<td>Transform listed as <code>skipped</code></td>
+<td>rvo couldn&#39;t prove it safe</td>
+<td>Read the printed reason — skipping is by design, not a bug. Ambiguous cases are left for you</td>
+</tr>
+<tr>
+<td><code>upgrade</code> shows no updates</td>
+<td>Dependencies are current</td>
+<td>Majors are hidden unless <code>--include-major</code>; non-semver ranges are skipped by design</td>
+</tr>
+<tr>
+<td><code>fix</code> asks to confirm every time</td>
+<td>Default interactive mode</td>
+<td>Pass <code>-y</code> / <code>--yes</code> to apply without prompting</td>
+</tr>
+<tr>
+<td><code>rvo</code> command not found</td>
+<td>Global install missing or PATH issue</td>
+<td><code>npm install -g react-vite-optimizer</code>, then check <code>npm bin -g</code> is on your PATH; or use <code>npx</code></td>
+</tr>
+<tr>
+<td>Key works on laptop but not CI</td>
+<td>Keys are per-machine by default</td>
+<td>Use the <code>RVO_LICENSE_KEY</code> env var in CI instead of a stored key</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>9. FAQ</h2>
+<p><strong>Is it safe?</strong>
+rvo is built around a conservative rule: <em>skip anything it can&#39;t prove
+safe, and say why.</em> Files that fail analysis are skipped, not forced.
+Transforms are idempotent. That said, it rewrites your source files, so the
+safety net is yours too: run it on a clean git tree, read the diff, run your
+tests and build.</p>
+<p><strong>Will it break my code?</strong>
+It shouldn&#39;t — every transform is a narrow, well-tested codemod (70 assertions in the test suite, including hostile inputs), and ambiguous cases
+are skipped rather than guessed. But &quot;shouldn&#39;t&quot; isn&#39;t &quot;can&#39;t&quot;: always run
+your test suite and <code>npm run build</code> after a fix pass. If something does
+break, <code>git checkout</code> restores you, and we&#39;d like to hear about it
+(<code>rvo feedback</code>, §10).</p>
+<p><strong>Does it work without Vite?</strong>
+The codemods work on any React codebase (JS/JSX/TS/TSX). What Vite adds is
+automatic code-splitting of the emitted <code>import()</code> calls at build time. On
+Create React App, Next.js, or other bundlers the code is still correct, but
+verify code-splitting behavior with your bundler&#39;s own tooling.</p>
+<p><strong>What data leaves my machine?</strong>
+Two network calls exist, both narrow: (1) license validation sends your key
+and a machine identifier (<code>rvo-cli:&lt;hostname&gt;:&lt;user&gt;</code>) to Lemon Squeezy&#39;s
+license API; (2) <code>rvo upgrade</code> queries the public npm registry for version
+metadata. Your source code is parsed and transformed <strong>locally</strong> — it is
+never uploaded anywhere.</p>
+<p><strong>What if I buy and it doesn&#39;t work for me?</strong>
+<code>analyze</code> is free precisely so this doesn&#39;t happen: you see the findings
+before paying. If <code>fix</code> still doesn&#39;t do what this manual describes, the
+14-day money-back guarantee applies — email support with your order details.</p>
+<p><strong>Can I get a refund?</strong>
+Yes, within 14 days of purchase, no interrogation. Email
+<a href="mailto:support@rvo-tools.lemonsqueezy.com">support@rvo-tools.lemonsqueezy.com</a> with the email address used at checkout.</p>
+<p><strong>One key, multiple machines?</strong>
+Activate the same key on each machine you work on (<code>rvo license &lt;key&gt;</code> per
+machine), within your tier&#39;s developer limit (Solo: 1, Team: up to 10).
+Use <code>RVO_LICENSE_KEY</code> for CI agents.</p>
+<hr>
+<h2>10. Feedback &amp; support</h2>
+<p>We read everything. Three channels, pick whichever is easiest:</p>
+<ul>
+<li><strong>From your terminal:</strong> <code>rvo feedback &quot;your message&quot;</code> — saves locally with
+version/platform info and shows you where to send it.</li>
+<li><strong>GitHub issues:</strong> <a href="https://github.com/rvo-dev/react-vite-optimizer/issues">https://github.com/rvo-dev/react-vite-optimizer/issues</a>
+— bug reports and feature requests (attach <code>rvo analyze --json</code> output for
+bugs).</li>
+<li><strong>Email:</strong> <a href="mailto:support@rvo-tools.lemonsqueezy.com">support@rvo-tools.lemonsqueezy.com</a> — licensing, refunds, and
+anything account-related.</li>
+</ul>
+<p>When reporting a problem, include: rvo version (<code>rvo --version</code>), Node
+version, the command you ran, and the full terminal output. For missed
+detections or bad transforms, a minimal code snippet reproducing it is worth
+more than a long description.</p>
+<hr>
+<p><em>End of manual · rvo v1.1.0 · <a href="https://rvo-tools.lemonsqueezy.com">https://rvo-tools.lemonsqueezy.com</a></em></p>
+
+  </article>
+  <footer>Built by Sandeep &middot; <a href="/">rvo home</a> &middot; <a href="https://www.npmjs.com/package/react-vite-optimizer">npm</a><br><span style="font-size:12px">&copy; 2026 &mdash; 14-day money-back guarantee on all paid licenses.</span></footer>
+</div>
+</body>
+</html>
