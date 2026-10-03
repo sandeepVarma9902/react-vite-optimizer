@@ -14,7 +14,7 @@
     "ora": "^5.4.1",
     "semver": "^7.6.0"
   },
-  "description": "Analyze and optimize React + Vite codebases: upgrade deps to latest stable, React.lazy code-splitting, React.memo and useMemo codemods.",
+  "description": "Analyze and optimize React + Vite codebases — plus free website SEO audits (rvo seo) with A–F grades.",
   "engines": {
     "node": ">=16"
   },
@@ -40,7 +40,10 @@
     "memo",
     "cli",
     "developer-tools",
-    "frontend"
+    "frontend",
+    "seo",
+    "seo-audit",
+    "website-audit"
   ],
   "license": "SEE LICENSE IN LICENSE.md",
   "name": "react-vite-optimizer",
@@ -52,5 +55,5 @@
     "test": "node ./test/license.js && node ./test/run.js && node ./test/aggressive.js && node ./test/v12.js && node ./test/migrate.js && node ./test/assess.js && node ./test/plan-migrate.js && node ./test/split.js && node ./test/seo.js"
   },
   "type": "commonjs",
-  "version": "2.1.2"
+  "version": "2.1.3"
 }

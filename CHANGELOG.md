@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.3 — 2026-10-03
+
+- npm discoverability: package description now mentions the free `rvo seo`
+  website audit; added `seo`, `seo-audit`, `website-audit` keywords so SEO
+  tooling searches surface the package.
+
 ## 2.1.2 — 2026-10-03
 
 - Store rebrand: Gumroad product links now point at `rvotools.gumroad.com`
