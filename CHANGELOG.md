@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.1.0 — 2026-10-03
+
+- **New: `rvo seo`** (free) — website SEO analyzer. Fetches a URL (+
+  `/robots.txt`, `/sitemap.xml`) and scores five categories (meta tags,
+  social cards, structure, crawlability, performance) with a 0–100 score,
+  A–F grade, and prioritized issues each carrying a one-line fix hint.
+  `--json` / `--html` reports. Zero new dependencies (Node built-ins for
+  fetching, incl. gzip/brotli decoding). Static-HTML analysis: it can't
+  see JS-rendered content or Core Web Vitals lab data — the report says
+  so in its footer.
+
 ## 1.2.1 — 2026-10-02
 
 - Linked the GitHub repository (`sandeepVarma9902/react-vite-optimizer`) and

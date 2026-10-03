@@ -33,12 +33,14 @@ const { buildPlan, printPlan } = require('../src/plan');
 const { runCrossFramework } = require('../src/xmigrate');
 const { analyzeSplit, printSplit, buildSplitHtmlReport } = require('../src/split');
 const { runSplitConvert } = require('../src/split-convert');
+const { analyzeSeo, printSeo, buildSeoHtmlReport } = require('../src/seo');
+const { fetchSite } = require('../src/seo-fetch');
 
 program
   .name('rvo')
   .description(
     'Analyze, optimize, and modernize a React codebase: dependency upgrades, React.lazy code-splitting, React.memo and useMemo codemods, CRA → Vite and React 19 migrations, cross-framework migration readiness/planning/conversion, and microfrontend analysis + conversion.\n' +
-    '  rvo analyze, rvo doctor, rvo assess and rvo split are free forever. fix / upgrade / migrate / plan / all / split convert require a license key.'
+    '  rvo analyze, rvo doctor, rvo assess, rvo split and rvo seo are free forever. fix / upgrade / migrate / plan / all / split convert require a license key.'
   )
   .version(require('../package.json').version);
 
@@ -58,6 +60,7 @@ Examples:
   $ rvo migrate ./my-app --to vue --out ./vue-app   convert React → Vue (license required)
   $ rvo split ./my-app             microfrontend readiness analysis (free)
   $ rvo split convert --plan split-plan.json --out ./microfrontends   generate Module Federation monorepo (license required)
+  $ rvo seo https://example.com    website SEO audit: meta, social cards, structure, crawlability, speed (free)
   $ rvo license <key>            activate your commercial license key
 
 Get a license key (one-time payment, 14-day money-back guarantee):
@@ -494,6 +497,46 @@ splitCmd
   .requiredOption('--out <dir>', 'write the monorepo here (must be outside the project root)')
   .option('--dry-run', 'print the file operations without writing anything')
   .action((dir, opts) => runSplitConvertCmd(dir, opts).catch(handleError));
+
+// --------------------------------------------------------------------- seo
+async function runSeo(url, opts) {
+  const fs = require('fs');
+  const path = require('path');
+  const spinner = ora(`Fetching ${url} …`).start();
+  let site;
+  try {
+    site = await fetchSite(url);
+  } catch (e) {
+    spinner.fail(`Could not fetch ${url}: ${e.message}`);
+    process.exitCode = 1;
+    return;
+  }
+  spinner.succeed(`Fetched ${site.meta.finalUrl} (HTTP ${site.meta.status})`);
+  const report = analyzeSeo(site.html, site.meta);
+  if (opts.json) {
+    const payload = JSON.stringify(report, null, 2);
+    if (opts.output) {
+      fs.writeFileSync(opts.output, payload + '\n');
+      console.log(chalk.green(`JSON SEO report written to ${opts.output}`));
+    } else {
+      console.log(payload);
+    }
+  } else if (opts.html) {
+    const out = opts.output || path.join(process.cwd(), 'rvo-seo-report.html');
+    fs.writeFileSync(out, buildSeoHtmlReport(report));
+    console.log(chalk.green(`HTML SEO report written to ${out}`));
+  } else {
+    printSeo(report);
+  }
+}
+
+program
+  .command('seo <url>')
+  .description('Audit a website for SEO: meta tags, social cards, structure, crawlability, speed (free)')
+  .option('--json', 'machine-readable report (stdout, or --output file)')
+  .option('--html', 'write a self-contained HTML report file')
+  .option('--output <file>', 'write --json/--html report to this file instead of defaults')
+  .action((url, opts) => runSeo(url, opts).catch(handleError));
 
 // --------------------------------------------------------------------- all
 program
