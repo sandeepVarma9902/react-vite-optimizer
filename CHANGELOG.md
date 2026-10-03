@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.1 — 2026-10-03
+
+- `rvo seo` now ends with a call-to-action for the self-hosted SEO Toolkit
+  dashboard (Gumroad, $39 one-time) — in terminal output, the `--html`
+  report footer, and a new README section documenting the `seo` command.
+
 ## 2.1.0 — 2026-10-03
 
 - **New: `rvo seo`** (free) — website SEO analyzer. Fetches a URL (+
