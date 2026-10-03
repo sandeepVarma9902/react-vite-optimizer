@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.2 — 2026-10-03
+
+- Store rebrand: Gumroad product links now point at `rvotools.gumroad.com`
+  (was `sandeeplakham.gumroad.com`) in `rvo seo` output, the `--html`
+  report footer, and the README.
+
 ## 2.1.1 — 2026-10-03
 
 - `rvo seo` now ends with a call-to-action for the self-hosted SEO Toolkit

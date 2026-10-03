@@ -52,5 +52,5 @@
     "test": "node ./test/license.js && node ./test/run.js && node ./test/aggressive.js && node ./test/v12.js && node ./test/migrate.js && node ./test/assess.js && node ./test/plan-migrate.js && node ./test/split.js && node ./test/seo.js"
   },
   "type": "commonjs",
-  "version": "2.1.1"
+  "version": "2.1.2"
 }

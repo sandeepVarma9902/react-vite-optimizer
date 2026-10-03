@@ -192,7 +192,7 @@ Checks meta tags, Open Graph/Twitter cards, heading structure, image alt
 coverage, robots.txt, sitemap.xml, redirects, and performance basics — with an
 A–F grade and prioritized fixes. Want grades per category, scan history, and
 PDF client reports? The self-hosted
-[SEO Toolkit dashboard](https://sandeeplakham.gumroad.com/l/seo-toolkit)
+[SEO Toolkit dashboard](https://rvotools.gumroad.com/l/seo-toolkit)
 ($39 one-time) runs the same engine with a full web UI.
 
 ## Licensing
