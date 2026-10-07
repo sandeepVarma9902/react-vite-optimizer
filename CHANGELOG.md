@@ -2,11 +2,11 @@
 
 ## 2.2.1 — 2026-10-07
 
-Same code as 2.2.0 (see below). 2.2.0 was staged on the npm registry but
-never finalized (registry-side staging fault; the version slot is poisoned),
-so this release re-ships the funnel fix as 2.2.1.
+Same code as 2.2.0 (see below). Published because 2.2.0's registry
+finalization was delayed ~10 minutes by a staging backlog; both versions
+are live, with `latest` pointing here.
 
-## 2.2.0 — 2026-10-07 (never went live on npm)
+## 2.2.0 — 2026-10-07
 
 - **New: `rvo seo --sample`** — watermarked client-ready sample HTML report
   (`rvo-seo-sample-report.html` by default, or `--output <file>`). A free
