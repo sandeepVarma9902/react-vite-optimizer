@@ -33,7 +33,7 @@ const { buildPlan, printPlan } = require('../src/plan');
 const { runCrossFramework } = require('../src/xmigrate');
 const { analyzeSplit, printSplit, buildSplitHtmlReport } = require('../src/split');
 const { runSplitConvert } = require('../src/split-convert');
-const { analyzeSeo, printSeo, buildSeoHtmlReport } = require('../src/seo');
+const { analyzeSeo, printSeo, buildSeoHtmlReport, buildSeoSampleReport } = require('../src/seo');
 const { fetchSite } = require('../src/seo-fetch');
 
 program
@@ -525,8 +525,21 @@ async function runSeo(url, opts) {
     const out = opts.output || path.join(process.cwd(), 'rvo-seo-report.html');
     fs.writeFileSync(out, buildSeoHtmlReport(report));
     console.log(chalk.green(`HTML SEO report written to ${out}`));
+  } else if (opts.sample) {
+    const out = opts.output || path.join(process.cwd(), 'rvo-seo-sample-report.html');
+    fs.writeFileSync(out, buildSeoSampleReport(report));
+    console.log(chalk.green(`Watermarked sample SEO report written to ${out}`));
+    console.log(chalk.dim('  Free taste of the paid SEO Toolkit dashboard:'));
+    console.log(chalk.cyan('  https://rvotools.gumroad.com/l/seo-toolkit'));
   } else {
     printSeo(report);
+    if (report.issues.length > 0) {
+      const n = report.issues.length;
+      console.log(chalk.bold.yellow(`\n  Found ${n} issue${n === 1 ? '' : 's'}. Want the client-ready version?`));
+      console.log(`  rvo seo ${report.finalUrl} --sample   → free watermarked sample report`);
+      console.log('  SEO Toolkit dashboard            → unwatermarked PDFs + scan history ($39 one-time)');
+      console.log(chalk.cyan('  https://rvotools.gumroad.com/l/seo-toolkit'));
+    }
   }
 }
 
@@ -535,7 +548,8 @@ program
   .description('Audit a website for SEO: meta tags, social cards, structure, crawlability, speed (free)')
   .option('--json', 'machine-readable report (stdout, or --output file)')
   .option('--html', 'write a self-contained HTML report file')
-  .option('--output <file>', 'write --json/--html report to this file instead of defaults')
+  .option('--sample', 'write a watermarked client-ready sample report — free taste of the paid dashboard')
+  .option('--output <file>', 'write --json/--html/--sample report to this file instead of defaults')
   .action((url, opts) => runSeo(url, opts).catch(handleError));
 
 // --------------------------------------------------------------------- all

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.2.0 — 2026-10-07
+
+- **New: `rvo seo --sample`** — watermarked client-ready sample HTML report
+  (`rvo-seo-sample-report.html` by default, or `--output <file>`). A free
+  taste of the paid SEO Toolkit dashboard: grade badge, top 5 issues shown,
+  the rest locked behind a blur with an upgrade CTA to the Gumroad page.
+- Moment-of-value upgrade CTA: when `rvo seo` finds issues, the terminal
+  output now suggests `--sample` and the SEO Toolkit dashboard. `--json`
+  machine output stays clean; the passive footer CTA is unchanged.
+
 ## 2.1.3 — 2026-10-03
 
 - npm discoverability: package description now mentions the free `rvo seo`

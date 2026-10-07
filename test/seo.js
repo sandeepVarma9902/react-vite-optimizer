@@ -14,7 +14,7 @@ const { promisify } = require('node:util');
 const zlib = require('node:zlib');
 const execFileAsync = promisify(execFile);
 
-const { analyzeSeo, buildSeoHtmlReport } = require('../src/seo');
+const { analyzeSeo, buildSeoHtmlReport, buildSeoSampleReport } = require('../src/seo');
 const { fetchSite, parseRobots, parseSitemap } = require('../src/seo-fetch');
 
 const BIN = path.join(__dirname, '..', 'bin', 'cli.js');
@@ -95,6 +95,46 @@ const htmlReport = buildSeoHtmlReport(good);
 ok(htmlReport.includes('Grade A') || htmlReport.includes('Grade B'), 'HTML report contains the grade');
 ok(htmlReport.includes('example.com/widgets'), 'HTML report contains the URL');
 
+// ---- sample report (funnel taste of the paid dashboard) ----
+function syntheticReport(issueCount) {
+  const sevCycle = ['error', 'warning', 'info'];
+  const issues = [];
+  for (let i = 0; i < issueCount; i++) {
+    issues.push({
+      severity: sevCycle[i % 3],
+      category: 'meta',
+      message: `synthetic issue #${i + 1}`,
+      fix: `fix for issue #${i + 1}`,
+    });
+  }
+  return {
+    tool: 'rvo seo',
+    url: 'https://example.com/',
+    finalUrl: 'https://example.com/',
+    status: 200,
+    redirects: 0,
+    ttfbMs: 900,
+    pageKb: 800,
+    contentEncoding: 'gzip',
+    title: 'Example',
+    generatedAt: new Date().toISOString(),
+    score: 62,
+    grade: 'D',
+    categories: {},
+    issues,
+    issueCounts: { error: 3, warning: 3, info: 2 },
+  };
+}
+const sampleMany = buildSeoSampleReport(syntheticReport(8));
+ok(sampleMany.includes('FREE SAMPLE'), 'sample report carries the FREE SAMPLE watermark');
+ok(sampleMany.includes('https://rvotools.gumroad.com/l/seo-toolkit'), 'sample report links to the Gumroad dashboard');
+ok(sampleMany.includes('synthetic issue #1') && sampleMany.includes('synthetic issue #5'), 'sample report shows the top 5 issues');
+ok(!sampleMany.includes('synthetic issue #6'), 'sample report hides issues beyond the top 5');
+ok(sampleMany.includes('+3 more issues'), 'sample report shows the lock block for locked issues');
+const sampleFew = buildSeoSampleReport(syntheticReport(3));
+ok(sampleFew.includes('FREE SAMPLE'), 'sample report (3 issues) still watermarked');
+ok(!sampleFew.includes('more issues'), 'sample report (3 issues) has no lock block');
+
 // ---- robots/sitemap parsers ----
 const blocking = parseRobots('User-agent: *\nDisallow: /');
 ok(blocking.blocksAll === true && blocking.allows === false, 'parseRobots detects blanket disallow');
@@ -152,6 +192,24 @@ async function main() {
   ok(payload.tool === 'rvo seo', 'CLI --json emits an rvo seo report');
   ok(payload.score >= 80, `CLI report scores high on the good fixture (got ${payload.score})`);
   ok(payload.categories.crawlability.score === 100, 'CLI report: crawlability perfect with robots+sitemap');
+
+  // CLI --sample writes a watermarked sample report file.
+  const os = require('node:os');
+  const sampleOut = path.join(os.tmpdir(), `rvo-seo-sample-test-${process.pid}.html`);
+  const { stdout: sampleStdout } = await execFileAsync('node', [BIN, 'seo', base + '/', '--sample', '--output', sampleOut]);
+  ok(fs.existsSync(sampleOut), 'CLI --sample writes the sample report file');
+  const sampleFile = fs.readFileSync(sampleOut, 'utf8');
+  ok(sampleFile.includes('FREE SAMPLE'), 'CLI --sample file carries the FREE SAMPLE watermark');
+  ok(sampleFile.includes('https://rvotools.gumroad.com/l/seo-toolkit'), 'CLI --sample file links to the Gumroad dashboard');
+  ok(/sample/i.test(sampleStdout), 'CLI --sample prints a confirmation line');
+  fs.unlinkSync(sampleOut);
+
+  // Default terminal path stays human-readable and carries the upgrade CTA
+  // when issues are found; --json machine output stays clean.
+  const { stdout: termStdout } = await execFileAsync('node', [BIN, 'seo', base + '/']);
+  ok(termStdout.includes('--sample'), 'default terminal output advertises --sample when issues exist');
+  const { stdout: jsonStdout } = await execFileAsync('node', [BIN, 'seo', base + '/', '--json']);
+  ok(!jsonStdout.includes('--sample'), 'CLI --json output stays machine-clean (no CTA lines)');
 
   server.close();
   console.log(`\nAll rvo seo tests passed (${n} assertions).`);

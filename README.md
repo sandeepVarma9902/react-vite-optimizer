@@ -186,11 +186,14 @@ your approved plan, with a `MIGRATION-NOTES.md` listing the manual steps.
 ```bash
 rvo seo https://example.com          # free: full SEO audit in your terminal
 rvo seo https://example.com --html   # save a shareable HTML report
+rvo seo https://example.com --sample # watermarked client-ready sample report
 ```
 
 Checks meta tags, Open Graph/Twitter cards, heading structure, image alt
 coverage, robots.txt, sitemap.xml, redirects, and performance basics — with an
-A–F grade and prioritized fixes. Want grades per category, scan history, and
+A–F grade and prioritized fixes. When the audit finds issues, the terminal
+output suggests `--sample`: a free, watermarked preview of the client-ready
+report. Want the unwatermarked version, grades per category, scan history, and
 PDF client reports? The self-hosted
 [SEO Toolkit dashboard](https://rvotools.gumroad.com/l/seo-toolkit)
 ($39 one-time) runs the same engine with a full web UI.
